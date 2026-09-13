@@ -45,17 +45,6 @@ function populateFractionSelect(id) {
   'parallel-gap-frac', 'parallel-base-point-frac', 'parallel-rise-frac'
 ].forEach(populateFractionSelect);
 
-// Переключение табов
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', e => {
-    const tabId = e.currentTarget.getAttribute('data-tab');
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    document.getElementById(tabId).classList.add('active');
-  });
-});
-
 // Заполнение размеров труба (single и multi)
 function populateSizes(prefix) {
   const type = document.getElementById(prefix + '-conduit-type').value;
@@ -73,7 +62,7 @@ populateSizes('multi');
 document.getElementById('single-conduit-type').addEventListener('change', () => populateSizes('single'));
 document.getElementById('multi-conduit-type').addEventListener('change', () => populateSizes('multi'));
 
-// Показать/скрыть ширину для saddle4
+// Управление отображением ширины для saddle4
 function updateSingleInputs() {
   const type = document.getElementById('single-bend-type').value;
   const show = (type === 'saddle4');
@@ -93,23 +82,17 @@ document.getElementById('single-bend-type').addEventListener('change', () => {
   enforceAngleRestriction();
 });
 
-// Управление кастомным углом
+// Кастомный угол - показать/скрыть
 const angleSelect = document.getElementById('single-bend-angle');
 angleSelect.addEventListener('change', () => {
   const wrapper = document.getElementById('single-custom-angle-wrapper');
-  if (angleSelect.value === 'custom') {
-    wrapper.style.display = 'flex';
-  } else {
-    wrapper.style.display = 'none';
-  }
+  wrapper.style.display = (angleSelect.value === 'custom') ? 'flex' : 'none';
 });
 
-// Синхронизация слайдера и поля кастомного угла
+// Синхронизация кастомного угла
 const slider = document.getElementById('single-custom-angle-slider');
 const numberInput = document.getElementById('single-custom-angle-number');
-slider.oninput = () => {
-  numberInput.value = slider.value;
-};
+slider.oninput = () => { numberInput.value = slider.value; };
 numberInput.oninput = () => {
   let val = parseFloat(numberInput.value);
   if (isNaN(val) || val < 1) val = 1;
@@ -118,7 +101,7 @@ numberInput.oninput = () => {
   numberInput.value = val;
 };
 
-// Ограничение выбора углов в зависимости от типа изгиба
+// Ограничения угла с учётом типа изгиба
 function enforceAngleRestriction() {
   const bendType = document.getElementById('single-bend-type').value;
   const angleSel = document.getElementById('single-bend-angle');
@@ -127,10 +110,10 @@ function enforceAngleRestriction() {
   for (let i = 0; i < angleSel.options.length; i++) {
     const val = angleSel.options[i].value;
     if (bendType === 'stub') {
-      // Для stub разрешён только 90 и кастом
+      // Для stub доступны только 90 и кастом
       angleSel.options[i].disabled = !(val === '90' || val === 'custom');
     } else {
-      // Для остальных запрещаем 90°
+      // Для остальных запрещаем 90
       angleSel.options[i].disabled = (val === '90');
     }
   }
@@ -139,6 +122,13 @@ function enforceAngleRestriction() {
     if (currentVal !== '90' && currentVal !== 'custom') {
       angleSel.value = '90';
       angleSel.dispatchEvent(new Event('change'));
+    } else if (currentVal === 'custom') {
+      let customAngle = parseFloat(document.getElementById('single-custom-angle-number').value);
+      if (customAngle !== 90) {
+        alert('Для 90° Stub-up кастомный угол должен быть ровно 90°.');
+        document.getElementById('single-custom-angle-number').value = 90;
+        document.getElementById('single-custom-angle-slider').value = 90;
+      }
     }
   } else {
     if (currentVal === '90') {
@@ -147,19 +137,17 @@ function enforceAngleRestriction() {
     }
   }
 }
-enforceAngleRestriction();
 document.getElementById('single-bend-type').addEventListener('change', enforceAngleRestriction);
 document.getElementById('single-bend-angle').addEventListener('change', enforceAngleRestriction);
+enforceAngleRestriction();
 
-// Вспомогательные функции:
-// Получить число с учетом целой и дробной части
+// Вспомогательные функции
 function getSplitVal(wholeId, fracId) {
   const whole = parseFloat(document.getElementById(wholeId).value) || 0;
   const frac = parseFloat(document.getElementById(fracId).value) || 0;
   return whole + frac;
 }
 
-// Форматирование дюймов в удобный для чтения вид (например, 3 1/4")
 function formatInches(inches) {
   if (inches < 0) inches = 0;
   const total16 = Math.round(inches * 16);
@@ -174,7 +162,7 @@ function formatInches(inches) {
   return whole > 0 ? `${whole} ${num}/${den}"` : `${num}/${den}"`;
 }
 
-// Основная функция расчета одиночного изгиба с подробными инструкциями
+// Функция расчета одиночного изгиба с инструкцией
 function calculateSingleBend() {
   const ctype = document.getElementById('single-conduit-type').value;
   const csize = document.getElementById('single-conduit-size').value;
@@ -212,7 +200,6 @@ function calculateSingleBend() {
   res += `Вид изгиба: ${document.getElementById('single-bend-type').selectedOptions[0].text}\n`;
   res += `Угол изгиба: ${angleDeg}°\n\n`;
 
-  // Персонализированная пошаговая инструкция
   if (type === 'stub') {
     const markPos = val1 - takeup;
     res += `Пошаговая инструкция:\n\n`;
@@ -288,5 +275,4 @@ function calculateSingleBend() {
   resDiv.innerHTML = res.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 }
 
-// Назначение обработчика кнопки расчета одиночного гиба
 document.getElementById('single-calc-btn').addEventListener('click', calculateSingleBend);
