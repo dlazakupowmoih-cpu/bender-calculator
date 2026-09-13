@@ -1,8 +1,15 @@
-const ConduitMath = {
-    toRad(deg) {
-        return deg * Math.PI / 180;
-    },
+// Полевые константы для стандартных углов гибки
+const BEND_CONSTANTS = {
+    10:    { multiplier: 5.759,  shrinkPerInch: 0.087,  centerShiftFactor: 0.087 },
+    15:    { multiplier: 3.864,  shrinkPerInch: 0.132,  centerShiftFactor: 0.132 },
+    22.5:  { multiplier: 2.613,  shrinkPerInch: 0.199,  centerShiftFactor: 0.198 },
+    30:    { multiplier: 2.000,  shrinkPerInch: 0.268,  centerShiftFactor: 0.268 },
+    45:    { multiplier: 1.414,  shrinkPerInch: 0.414,  centerShiftFactor: 0.414 },
+    60:    { multiplier: 1.155,  shrinkPerInch: 0.577,  centerShiftFactor: 0.577 }
+};
 
+const ConduitMath = {
+    // Форматирование десятичных дюймов в строительные дроби (шаг 1/16")
     formatInches(value) {
         if (isNaN(value) || value < 0) return '0"';
         const inches = Math.floor(value);
@@ -58,13 +65,12 @@ const ConduitMath = {
     },
 
     calcOffset(v1, v2, angleDeg, takeup, clr) {
-        const rad = this.toRad(angleDeg);
-        const multiplier = 1 / Math.sin(rad);
-        const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
-        const centerShift = clr * Math.tan(rad / 2);
+        const bend = BEND_CONSTANTS[angleDeg] || BEND_CONSTANTS[30];
+        const shrink = v2 * bend.shrinkPerInch;
+        const centerShift = clr * bend.centerShiftFactor;
         
         const m1 = v1 + shrink - centerShift;
-        const dist = v2 * multiplier;
+        const dist = v2 * bend.multiplier;
         const m2 = m1 + dist;
 
         return {
@@ -73,7 +79,7 @@ const ConduitMath = {
                 { label: 'Вторая отметка (M2)', value: m2, formatted: this.formatInches(m2) }
             ],
             steps: [
-                `Базовая отметка: <b>${this.formatInches(v1)}</b>. Усадка: <b>${this.formatInches(shrink)}</b>.`,
+                `Базовая отметка: <b>${this.formatInches(v1)}</b>. Усадка (${angleDeg}°): <b>${this.formatInches(shrink)}</b>.`,
                 `<b>Первая отметка (M1):</b> Поставь метку на расстоянии <b>${this.formatInches(m1)}</b> от конца трубы.`,
                 `<b>Вторая отметка (M2):</b> Отмерь от M1 расстояние <b>${this.formatInches(dist)}</b> и поставь вторую метку.`,
                 `<b>Гибка:</b> Первый гиб на M1 под углом ${angleDeg}°. Второй гиб на M2 в ту же сторону.`
@@ -82,9 +88,9 @@ const ConduitMath = {
     },
 
     calcKick(v1, v2, angleDeg, takeup, clr) {
-        const rad = this.toRad(angleDeg);
-        const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
-        const centerShift = clr * Math.tan(rad / 2);
+        const bend = BEND_CONSTANTS[angleDeg] || BEND_CONSTANTS[30];
+        const shrink = v2 * bend.shrinkPerInch;
+        const centerShift = clr * bend.centerShiftFactor;
         const m1 = v1 + shrink - centerShift;
 
         return {
@@ -100,13 +106,14 @@ const ConduitMath = {
     },
 
     calcParallelOffset(v1, v2, angleDeg, takeup, clr, pipeIndex, spacing) {
-        const rad = this.toRad(angleDeg);
-        const multiplier = 1 / Math.sin(rad);
-        const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
-        const centerShift = clr * Math.tan(rad / 2);
+        const bend = BEND_CONSTANTS[angleDeg] || BEND_CONSTANTS[30];
+        const shrink = v2 * bend.shrinkPerInch;
+        const centerShift = clr * bend.centerShiftFactor;
         
+        // Для параллельных труб берем шаг через тангенс угла
+        const rad = angleDeg * Math.PI / 180;
         const m1 = v1 + shrink - centerShift + (pipeIndex * spacing * (1 / Math.tan(rad)));
-        const dist = v2 * multiplier;
+        const dist = v2 * bend.multiplier;
         const m2 = m1 + dist;
 
         return {
@@ -115,7 +122,7 @@ const ConduitMath = {
                 { label: `Труба #${pipeIndex + 1} — Метка M2`, value: m2, formatted: this.formatInches(m2) }
             ],
             steps: [
-                `<b>Параллельный ряд (Труба #${pipeIndex + 1}):</b> Шаг между осями: <b>${this.formatInches(spacing)}</b>.`,
+                `<b>Параллельный ряд (Труба #${pipeIndex + 1}):</b> Шаг осей: <b>${this.formatInches(spacing)}</b>.`,
                 `<b>Первая отметка (M1):</b> Поставь метку на расстоянии <b>${this.formatInches(m1)}</b>.`,
                 `<b>Вторая отметка (M2):</b> Отмерь от M1 расстояние <b>${this.formatInches(dist)}</b>.`,
                 `<b>Гибка:</b> Гни оба гиба под углом <b>${angleDeg}°</b> в одной плоскости.`
@@ -124,14 +131,13 @@ const ConduitMath = {
     },
 
     calcSaddle3(v1, v2, angleDeg, clr) {
-        const rad = this.toRad(angleDeg);
-        const multiplier = 1 / Math.sin(rad);
-        const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
-        const centerShift = clr * Math.tan(rad / 2);
+        const bend = BEND_CONSTANTS[angleDeg] || BEND_CONSTANTS[30];
+        const shrink = v2 * bend.shrinkPerInch;
+        const centerShift = clr * bend.centerShiftFactor;
         
         const saddleShrink = 2 * shrink;
         const m2 = v1 + saddleShrink; 
-        const dist = v2 * multiplier;
+        const dist = v2 * bend.multiplier;
         const m1 = m2 - dist - centerShift; 
         const m3 = m2 + dist + centerShift; 
         const centerAngle = angleDeg * 2;
@@ -152,14 +158,13 @@ const ConduitMath = {
     },
 
     calcSaddle4(v1, v2, obstacleWidth, angleDeg, clr) {
-        const rad = this.toRad(angleDeg);
-        const multiplier = 1 / Math.sin(rad);
-        const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
-        const centerShift = clr * Math.tan(rad / 2);
+        const bend = BEND_CONSTANTS[angleDeg] || BEND_CONSTANTS[30];
+        const shrink = v2 * bend.shrinkPerInch;
+        const centerShift = clr * bend.centerShiftFactor;
 
         const totalShrink = 2 * shrink;
         const adjCenter = v1 + totalShrink;
-        const dist = v2 * multiplier;
+        const dist = v2 * bend.multiplier;
         const halfWidth = obstacleWidth / 2;
 
         const m2 = adjCenter - halfWidth;
