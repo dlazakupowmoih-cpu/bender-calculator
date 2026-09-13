@@ -104,29 +104,28 @@ const tab3 = (function() {
 
     function toggleMultiItemInputs(id) {
         const type = document.getElementById(`m-type-${id}`).value;
+        const angleWrap = document.getElementById(`m-angle-wrap-${id}`);
         const lblV1 = document.getElementById(`m-lbl-v1-${id}`);
         const lblV2 = document.getElementById(`m-lbl-v2-${id}`);
         
         document.getElementById(`m-group-v2-${id}`).style.display = 'block';
         document.getElementById(`m-group-v3-${id}`).style.display = (type === 'saddle4') ? 'block' : 'none';
 
-        const angleWrap = document.getElementById(`m-angle-wrap-${id}`);
-
         if (type === 'stub') {
             document.getElementById(`m-group-v2-${id}`).style.display = 'none';
-            angleWrap.style.display = 'none'; // Скрываем выбор угла для stub
-            lblV1 && (lblV1.innerText = "Высота стюба от конца трубы");
+            angleWrap.style.display = 'none'; // Скрыть выбор угла
+            if(lblV1) lblV1.innerText = "Высота стюба от конца трубы";
         } else {
-            angleWrap.style.display = 'block'; // Показываем выбор угла для всех остальных типов
-            if (type === 'kick') {
-                lblV1 && (lblV1.innerText = "Расстояние от конца трубы до центра кика");
-                lblV2 && (lblV2.innerText = "Высота кика");
-            } else if (type === 'offset') {
-                lblV1 && (lblV1.innerText = "Центр препятствия / старт");
-                lblV2 && (lblV2.innerText = "Глубина оффсета");
-            } else if (type === 'saddle3' || type === 'saddle4') {
-                lblV1 && (lblV1.innerText = "Центр препятствия от стены");
-                lblV2 && (lblV2.innerText = "Высота препятствия");
+            angleWrap.style.display = 'block'; // Показать выбор угла
+            if(type === 'kick') {
+                if(lblV1) lblV1.innerText = "Расстояние от конца трубы до центра кика";
+                if(lblV2) lblV2.innerText = "Высота кика";
+            } else if(type === 'offset') {
+                if(lblV1) lblV1.innerText = "Центр препятствия / старт";
+                if(lblV2) lblV2.innerText = "Глубина оффсета";
+            } else if(type === 'saddle3' || type === 'saddle4') {
+                if(lblV1) lblV1.innerText = "Центр препятствия от стены";
+                if(lblV2) lblV2.innerText = "Высота препятствия";
             }
         }
     }
@@ -162,7 +161,7 @@ const tab3 = (function() {
 
             let angle, rad, multiplier, shrink, centerCorr;
             if (type === 'stub') {
-                angle = 90; // Жёстко 90 градусов для stub
+                angle = 90; 
             } else {
                 angle = parseFloat(document.getElementById(`m-angle-${id}`).value) || 30;
             }
@@ -252,6 +251,8 @@ const tab3 = (function() {
         updateSizeOptions();
         addMultiItem();
         addMultiItem();
+
+        document.getElementById('m-conduit-type').addEventListener('change', updateSizeOptions);
     }
 
     return {
