@@ -22,7 +22,6 @@ const tab2 = (function() {
 
         const hypotenuse = Math.sqrt(rise*rise + run*run + width*width);
 
-        // углы в разных плоскостях
         const angleXY = run === 0 ? 90 : Math.atan(rise/run)*180/Math.PI;
         const angleXZ = width === 0 ? 90 : Math.atan(rise/width)*180/Math.PI;
 
