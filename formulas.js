@@ -51,7 +51,7 @@ const ConduitMath = {
         return {
             marks: [{ label: 'Точка гиба', value: result, formatted: this.formatInches(result) }],
             steps: [
-                `Отмерь от конца трубы нужную высоту: <b>${this.formatInches(targetHeight)}</b>.`,
+                `Отмерь от конца трубы общую высоту: <b>${this.formatInches(targetHeight)}</b>.`,
                 `Вычти takeup бендера для этого размера: <b>${this.formatInches(takeup)}</b>.`,
                 `Поставь отметку на расстоянии <b>${this.formatInches(result)}</b> от конца трубы.`,
                 `Заряди трубу в трубогиб стрелкой к концу и гни до упора.`
@@ -59,7 +59,7 @@ const ConduitMath = {
         };
     },
 
-    // Расчет Offset (смещение)
+    // Расчет Offset (смещение / кик)
     calcOffset(v1, v2, angleDeg, takeup, clr) {
         const rad = this.toRad(angleDeg);
         const multiplier = 1 / Math.sin(rad);
@@ -107,7 +107,7 @@ const ConduitMath = {
             steps: [
                 `<b>Центр препятствия:</b> Базовая точка на трубе: <b>${this.formatInches(v1)}</b>. Общая усадка сэдла: <b>${this.formatInches(saddleShrink)}</b>.`,
                 `<b>Центр (M2):</b> Поставь центральную отметку на расстоянии <b>${this.formatInches(m2)}</b> от конца.`,
-                `<b>Боковые точки (M1 и M3):</b> Отмерь от центра M2 расстояние <b>${this.formatInches(dist)}</b> в обе стороны с учетом поправки.`,
+                `<b>Боковые точки (M1 и M3):</b> Отмерь от центра M2 расстояние <b>${this.formatInches(dist)}</b> в обе стороны с учетом поправки центра.`,
                 `<b>Гибка:</b> Центральный гиб на M2 гни под углом <b>${centerAngle}°</b>. Боковые гибы на M1 и M3 — под углом <b>${angleDeg}°</b> в противоположную сторону.`
             ]
         };
