@@ -74,3 +74,4 @@ function populateFractionSelects(selector = '.frac-select') {
 document.addEventListener('DOMContentLoaded', () => {
     populateFractionSelects();
 });
+  
