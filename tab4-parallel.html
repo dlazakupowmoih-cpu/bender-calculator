@@ -1,0 +1,77 @@
+<div class="card">
+    <div class="section-title">Общие параметры группы труб</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Режим отступов между трубами</label>
+            <select id="p-spacing-mode" onchange="tab4.toggleParallelSpacing()">
+                <option value="uniform" selected>Одинаковый (автоматический шаг)</option>
+                <option value="custom">Кастомный (по каждой трубе)</option>
+            </select>
+        </div>
+        <div class="form-group" id="p-uniform-gap-group">
+            <label>Базовый отступ между осями</label>
+            <div class="inch-split">
+                <input type="number" id="p-gap-whole" value="3" min="0" />
+                <select id="p-gap-frac" class="frac-select"></select>
+            </div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Направление отсчета в пакете</label>
+            <select id="p-stack-direction">
+                <option value="bottom-to-top">Снизу вверх (1-я труба — база)</option>
+                <option value="top-to-bottom">Сверху вниз (последняя труба — база)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Тип изгиба / фитинга</label>
+            <select id="p-fitting-type" onchange="tab4.toggleParallelFittingInputs()">
+                <option value="single" selected>Single Bend / Kick (Одиночный угол)</option>
+                <option value="offset">Классический Offset</option>
+                <option value="saddle3">3-Point Saddle</option>
+                <option value="saddle4">4-Point Saddle</option>
+                <option value="stub">90° Stub-up</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row" style="margin-top:12px;">
+        <div class="form-group" id="p-group-v1">
+            <label>Базовая точка старта / Метка от торца</label>
+            <div class="inch-split">
+                <input type="number" id="p-v1-whole" value="24" min="0" />
+                <select id="p-v1-frac" class="frac-select"></select>
+            </div>
+        </div>
+        <div class="form-group" id="p-group-v2">
+            <label>Требуемый подъем (Rise / Depth)</label>
+            <div class="inch-split">
+                <input type="number" id="p-v2-whole" value="4" min="0" />
+                <select id="p-v2-frac" class="frac-select"></select>
+            </div>
+        </div>
+        <div class="form-group" id="p-group-angle">
+            <label>Угол изгиба</label>
+            <select id="p-base-angle">
+                <option value="10">10°</option>
+                <option value="22.5">22.5°</option>
+                <option value="30" selected>30°</option>
+                <option value="45">45°</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="section-title">
+        Спецификация труб в пачке
+        <button class="btn" style="width:auto; font-size:0.85rem; padding:5px 10px;" onclick="tab4.addParallelPipe()">+ Добавить трубу</button>
+    </div>
+    <div id="p-pipes-container"></div>
+</div>
+
+<div class="card">
+    <button class="btn" onclick="tab4.calculateParallelRun()">Рассчитать трассу</button>
+    <div id="p-results" class="results" style="display:none; margin-top:12px;"></div>
+</div>
