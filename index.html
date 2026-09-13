@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор трубогиба</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Переключение вкладок -->
+    <div class="tabs">
+        <div class="tab-btn active" onclick="switchTab('single')">Одиночный гиб</div>
+        <div class="tab-btn" onclick="switchTab('kick')">Kick</div>
+        <div class="tab-btn" onclick="switchTab('multi')">Multi-Run</div>
+        <div class="tab-btn" onclick="switchTab('parallel')">Parallel-Run</div>
+    </div>
+
+    <!-- Вкладка 1: Одиночный гиб -->
+    <div id="tab-single" class="tab-content active">
+        <div class="card">
+            <div class="section-title">Параметры трубы и геометрии</div>
+            
+            <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Тип трубы</label>
+                    <select id="s-conduit-type">
+                        <option value="emt" selected>EMT</option>
+                        <option value="imc">IMC</option>
+                        <option value="rigid">Rigid</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Размер трубы</label>
+                    <select id="s-conduit-size"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Вид изгиба</label>
+                <select id="s-bend-type">
+                    <option value="stub">90° Stub-up (Прямой угол)</option>
+                    <option value="offset">Offset (Классический оффсет)</option>
+                    <option value="offset_box">Offset to Box (Заводка в коробку)</option>
+                    <option value="saddle3" selected>3-Point Saddle (Седло 3 точки)</option>
+                    <option value="saddle4">4-Point Saddle (Седло 4 точки)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="s-angle-group-container">
+                <label>Угол изгиба</label>
+                <select id="s-bend-angle">
+                    <option value="10">10° (плавный)</option>
+                    <option value="22.5">22.5° (стандарт)</option>
+                    <option value="30" selected>30° (ходовой)</option>
+                    <option value="45">45° (крутой)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Центр препятствия со стены (V1)</label>
+                <div class="inch-split">
+                    <input type="number" id="s-v1-whole" value="36" min="0" />
+                    <select id="s-v1-frac" class="frac-select"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Глубина / Высота препятствия (V2)</label>
+                <div class="inch-split">
+                    <input type="number" id="s-v2-whole" value="4" min="0" />
+                    <select id="s-v2-frac" class="frac-select"></select>
+                </div>
+            </div>
+
+            <div class="form-group" id="s-val3-group" style="display:none;">
+                <label>Ширина препятствия (V3)</label>
+                <div class="inch-split">
+                    <input type="number" id="s-v3-whole" value="6" min="0" />
+                    <select id="s-v3-frac" class="frac-select"></select>
+                </div>
+            </div>
+
+            <button class="btn" id="btn-calc-single">Рассчитать разметку</button>
+
+            <div id="s-results" class="results" style="display:none;"></div>
+            <div id="s-instructions" class="instructions" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Вкладка 2: Kick -->
+    <div id="tab-kick" class="tab-content">
+        <div class="card">
+            <div class="section-title">Параметры Kick (догиб / подъем)</div>
+            <div class="form-group">
+                <label>Расстояние до точки гиба</label>
+                <div class="inch-split">
+                    <input type="number" id="k-dist-whole" value="20" min="0" />
+                    <select id="k-dist-frac" class="frac-select"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Высота подъема (Height)</label>
+                <div class="inch-split">
+                    <input type="number" id="k-height-whole" value="3" min="0" />
+                    <select id="k-height-frac" class="frac-select"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Угол изгиба</label>
+                <select id="k-angle">
+                    <option value="10">10°</option>
+                    <option value="22.5">22.5°</option>
+                    <option value="30" selected>30°</option>
+                    <option value="45">45°</option>
+                </select>
+            </div>
+            <button class="btn" id="btn-calc-kick">Рассчитать Kick</button>
+            <div id="k-results" class="results" style="display:none;"></div>
+            <div id="k-instructions" class="instructions" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Вкладка 3: Multi-Run -->
+    <div id="tab-multi" class="tab-content">
+        <div class="card">
+            <div class="section-title">Параметры трубы для Multi-Run</div>
+            <div class="form-row" style="display: flex; gap: 12px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Тип трубы</label>
+                    <select id="m-conduit-type">
+                        <option value="emt" selected>EMT</option>
+                        <option value="imc">IMC</option>
+                        <option value="rigid">Rigid</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Размер трубы</label>
+                    <select id="m-conduit-size"></select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                Цепочка изгибов на трубе
+                <button type="button" class="btn" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="tab3.addMultiItem()">+ Добавить гиб</button>
+            </div>
+            <div id="m-bends-container"></div>
+        </div>
+
+        <div class="card">
+            <button type="button" class="btn" onclick="tab3.calculateMultiRun()">Рассчитать Multi-Run разметку</button>
+            <div id="m-error-container"></div>
+            <div id="m-results" class="results" style="display:none;"></div>
+            <div id="m-instructions" class="instructions" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Вкладка 4: Parallel-Run -->
+    <div id="tab-parallel" class="tab-content">
+        <div class="card">
+            <div class="section-title">Параметры параллельных трасс</div>
+            <div class="form-group">
+                <label>Тип фитинга</label>
+                <select id="p-fitting-type">
+                    <option value="stub">90° Stub-up</option>
+                    <option value="offset" selected>Offset</option>
+                </select>
+            </div>
+            <div class="form-group" id="p-group-angle">
+                <label>Угол изгиба</label>
+                <select id="p-base-angle">
+                    <option value="10">10°</option>
+                    <option value="22.5">22.5°</option>
+                    <option value="30" selected>30°</option>
+                    <option value="45">45°</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Способ расстановки труб</label>
+                <select id="p-spacing-mode">
+                    <option value="uniform">Равномерный шаг</option>
+                </select>
+            </div>
+            <div class="form-group" id="p-uniform-gap-group">
+                <label>Шаг между трубами</label>
+                <div class="inch-split">
+                    <input type="number" id="p-gap-whole" value="2" min="0" />
+                    <select id="p-gap-frac" class="frac-select"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Базовая метка V1 (первая труба)</label>
+                <div class="inch-split">
+                    <input type="number" id="p-v1-whole" value="24" min="0" />
+                    <select id="p-v1-frac" class="frac-select"></select>
+                </div>
+            </div>
+            <div class="form-group" id="p-group-v2">
+                <label>Высота оффсета V2</label>
+                <div class="inch-split">
+                    <input type="number" id="p-v2-whole" value="4" min="0" />
+                    <select id="p-v2-frac" class="frac-select"></select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                Список труб в пакете
+                <button type="button" class="btn" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="tab4.addParallelPipe()">+ Труба</button>
+            </div>
+            <div id="p-pipes-container"></div>
+        </div>
+
+        <div class="card">
+            <button type="button" class="btn" onclick="tab4.calculateParallelRun()">Рассчитать пакет труб</button>
+            <div id="p-results" class="results" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Подключение JS-модулей -->
+    <script src="db.js"></script>
+    <script src="formulas.js"></script>
+    <script src="tab1.js"></script>
+    <script src="tab2.js"></script>
+    <script src="tab3.js"></script>
+    <script src="tab4.js"></script>
+
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.tab-btn');
+            if (tabName === 'single') {
+                buttons[0].classList.add('active');
+                document.getElementById('tab-single').classList.add('active');
+            } else if (tabName === 'kick') {
+                buttons.classList.add('active');
+                document.getElementById('tab-kick').classList.add('active');
+            } else if (tabName === 'multi') {
+                buttons.classList.add('active');
+                document.getElementById('tab-multi').classList.add('active');
+            } else if (tabName === 'parallel') {
+                buttons.classList.add('active');
+                document.getElementById('tab-parallel').classList.add('active');
+            }
+        }
+
+        document.getElementById('s-bend-type')?.addEventListener('change', function() {
+            const v3Group = document.getElementById('s-val3-group');
+            v3Group.style.display = (this.value === 'saddle4') ? 'block' : 'none';
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof tab1 !== 'undefined') tab1.init();
+            if (typeof tab2 !== 'undefined') tab2.init();
+            if (typeof tab3 !== 'undefined') tab3.init();
+            if (typeof tab4 !== 'undefined') tab4.init();
+        });
+    </script>
+</body>
+</html>
