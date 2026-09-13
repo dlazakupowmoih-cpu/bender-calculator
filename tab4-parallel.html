@@ -3,7 +3,7 @@
     <div class="form-row">
         <div class="form-group">
             <label>Режим отступов между трубами</label>
-            <select id="p-spacing-mode" onchange="tab4.toggleParallelSpacing()">
+            <select id="p-spacing-mode">
                 <option value="uniform" selected>Одинаковый (автоматический шаг)</option>
                 <option value="custom">Кастомный (по каждой трубе)</option>
             </select>
@@ -26,7 +26,7 @@
         </div>
         <div class="form-group">
             <label>Тип изгиба / фитинга</label>
-            <select id="p-fitting-type" onchange="tab4.toggleParallelFittingInputs()">
+            <select id="p-fitting-type">
                 <option value="single" selected>Single Bend / Kick (Одиночный угол)</option>
                 <option value="offset">Классический Offset</option>
                 <option value="saddle3">3-Point Saddle</option>
@@ -64,8 +64,7 @@
 </div>
 
 <div class="card">
-    <div class="section-title">
-        Спецификация труб в пачке
+    <div class="section-title">Спецификация труб в пачке
         <button class="btn" style="width:auto; font-size:0.85rem; padding:5px 10px;" onclick="tab4.addParallelPipe()">+ Добавить трубу</button>
     </div>
     <div id="p-pipes-container"></div>
