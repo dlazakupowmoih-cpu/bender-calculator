@@ -32,7 +32,6 @@
             font-size: 14px;
             margin-bottom: 16px;
         }
-        /* 4 вкладки сверху */
         .tabs {
             display: flex;
             gap: 4px;
@@ -106,7 +105,7 @@
             border-radius: 4px;
         }
         .mark-item {
-            font-size: 18px;
+            font-size: 16px;
             margin: 8px 0;
             color: #4caf50;
         }
@@ -131,15 +130,15 @@
     <h2>Eto Bender Suka</h2>
     <div class="subtitle">Профессиональный калькулятор трубогиба</div>
     
-    <!-- Четыре вкладки -->
+    <!-- 4 вкладки -->
     <div class="tabs">
         <button class="tab-btn active" id="tab1" onclick="switchTab(1)">1. Одиночный</button>
-        <button class="tab-btn" id="tab2" onclick="switchTab(2)">2. По катетам</button>
+        <button class="tab-btn" id="tab2" onclick="switchTab(2)">2. Кик</button>
         <button class="tab-btn" id="tab3" onclick="switchTab(3)">3. Multi-Run</button>
         <button class="tab-btn" id="tab4" onclick="switchTab(4)">4. Параллельный</button>
     </div>
 
-    <div class="section-title">Параметры трубы и геометрии</div>
+    <div class="section-title" id="sectionTitleHeader">Параметры трубы и геометрии</div>
 
     <div class="form-group">
         <label for="conduitType">Тип трубы</label>
@@ -162,19 +161,8 @@
         </select>
     </div>
 
-    <div class="form-group">
-        <label for="calcType">Вид изгиба</label>
-        <select id="calcType" onchange="toggleInputs()">
-            <option value="offset">Offset (Смещение)</option>
-            <option value="stub">Stub-up (Подъем)</option>
-            <option value="kick">Kick (Кик)</option>
-            <option value="saddle3">3-Point Saddle (Седло 3 точки)</option>
-            <option value="saddle4">4-Point Saddle (Седло 4 точки / Box)</option>
-        </select>
-    </div>
-
     <div class="form-group" id="groupAngle">
-        <label for="angle">Угол изгиба офсета / седла</label>
+        <label for="angle">Угол изгиба</label>
         <select id="angle">
             <option value="10">10°</option>
             <option value="15">15°</option>
@@ -186,21 +174,25 @@
     </div>
 
     <div class="form-group" id="groupV1">
-        <label for="v1" id="labelV1">Центр препятствия со стены</label>
+        <label for="v1" id="labelV1">Базовая отметка / Центр</label>
         <input type="number" id="v1" step="0.125" value="36">
     </div>
 
     <div class="form-group" id="groupV2">
-        <label for="v2" id="labelV2">Высота препятствия (Depth со стены)</label>
+        <label for="v2" id="labelV2">Высота смещения (Depth)</label>
         <input type="number" id="v2" step="0.125" value="4">
     </div>
 
-    <div class="form-group hidden" id="groupWidth">
-        <label for="obstacleWidth">Ширина препятствия (в дюймах)</label>
-        <input type="number" id="obstacleWidth" step="0.125" value="6">
+    <!-- Поля для Multi-Run -->
+    <div class="form-group hidden" id="groupMultiRun">
+        <label for="totalPipes">Количество труб в пакете</label>
+        <input type="number" id="totalPipes" value="3" min="1" max="10" step="1">
+        
+        <label for="multiSpacing" style="margin-top: 8px;">Шаг между осями (Spacing)</label>
+        <input type="number" id="multiSpacing" value="2" step="0.125">
     </div>
 
-    <!-- Поля для параллельных труб / Multi-Run -->
+    <!-- Поля для Параллельного рана (отдельная труба) -->
     <div class="form-group hidden" id="groupParallel">
         <label for="pipeIndex">Номер трубы в ряду (0 — первая)</label>
         <input type="number" id="pipeIndex" value="1" min="0" step="1">
@@ -212,7 +204,7 @@
     <button class="calc-btn" onclick="calculate()">Рассчитать разметку</button>
 
     <div id="resultContainer" class="result-card hidden">
-        <h3 style="margin-top:0; color:#fff;">📍 Где ставить метки:</h3>
+        <h3 style="margin-top:0; color:#fff;">📍 Результат расчета:</h3>
         <div id="marksOutput"></div>
         <h3 style="margin-bottom:5px; color:#fff;">🛠 Порядок работы:</h3>
         <ol id="stepsOutput" class="steps-list"></ol>
@@ -230,88 +222,65 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab' + tabNum).classList.add('active');
 
-        const calcTypeSelect = document.getElementById('calcType');
-        const groupParallel = document.getElementById('groupParallel');
+        // Скрываем все специфичные блоки перед переключением
+        document.getElementById('groupV2').classList.remove('hidden');
+        document.getElementById('groupAngle').classList.remove('hidden');
+        document.getElementById('groupMultiRun').classList.add('hidden');
+        document.getElementById('groupParallel').classList.add('hidden');
 
-        groupParallel.classList.add('hidden');
-
-        if (tabNum === 1) {
-            calcTypeSelect.value = 'offset';
-        } else if (tabNum === 2) {
-            calcTypeSelect.value = 'offset';
-        } else if (tabNum === 3) {
-            calcTypeSelect.value = 'offset';
-        } else if (tabNum === 4) {
-            // Отдельная вкладка для параллельного рана
-            calcTypeSelect.value = 'offset';
-            groupParallel.classList.remove('hidden');
-        }
-        toggleInputs();
-    }
-
-    function toggleInputs() {
-        const type = document.getElementById('calcType').value;
-        const groupV2 = document.getElementById('groupV2');
         const labelV1 = document.getElementById('labelV1');
         const labelV2 = document.getElementById('labelV2');
-        const groupAngle = document.getElementById('groupAngle');
-        const groupWidth = document.getElementById('groupWidth');
 
-        groupWidth.classList.add('hidden');
-        groupV2.classList.remove('hidden');
-        groupAngle.classList.remove('hidden');
-
-        if (type === 'stub') {
-            groupV2.classList.add('hidden');
-            groupAngle.classList.add('hidden');
-            labelV1.innerText = "Требуемая высота подъема (Stub-up)";
-        } else if (type === 'offset' || type === 'kick') {
+        if (tabNum === 1) {
+            // Одиночный (Offset)
             labelV1.innerText = "Базовая отметка / Центр препятствия";
-            labelV2.innerText = "Высота препятствия (Depth со стены)";
-        } else if (type === 'saddle3' || type === 'saddle4') {
-            labelV1.innerText = "Центр препятствия со стены";
-            labelV2.innerText = "Высота препятствия (Depth со стены)";
-            if (type === 'saddle4') groupWidth.classList.remove('hidden');
+            labelV2.innerText = "Высота смещения (Depth)";
+        } else if (tabNum === 2) {
+            // Кик (Kick)
+            labelV1.innerText = "Расстояние до упора / База";
+            labelV2.innerText = "Высота кика";
+        } else if (tabNum === 3) {
+            // Multi-Run
+            labelV1.innerText = "Базовая отметка / Центр препятствия";
+            labelV2.innerText = "Высота смещения (Depth)";
+            document.getElementById('groupMultiRun').classList.remove('hidden');
+        } else if (tabNum === 4) {
+            // Параллельный ран
+            labelV1.innerText = "Базовая отметка / Центр препятствия";
+            labelV2.innerText = "Высота смещения (Depth)";
+            document.getElementById('groupParallel').classList.remove('hidden');
         }
     }
 
     function calculate() {
         const type = document.getElementById('conduitType').value;
         const size = document.getElementById('conduitSize').value;
-        const calcType = document.getElementById('calcType').value;
-        
         const v1 = parseFloat(document.getElementById('v1').value) || 0;
         const v2 = parseFloat(document.getElementById('v2').value) || 0;
-        const width = parseFloat(document.getElementById('obstacleWidth').value) || 0;
         const angle = parseFloat(document.getElementById('angle').value) || 30;
 
         const spec = conduitSpecs[type][size];
         let res;
 
-        // Если активна вкладка 3 или 4 (параллельные/multi-run)
-        if (currentTab === 3 || currentTab === 4) {
+        if (currentTab === 1) {
+            res = ConduitMath.calcOffset(v1, v2, angle, spec.takeup, spec.clr);
+        } else if (currentTab === 2) {
+            res = ConduitMath.calcKick(v1, v2, angle, spec.takeup);
+        } else if (currentTab === 3) {
+            const totalPipes = parseInt(document.getElementById('totalPipes').value) || 3;
+            const spacing = parseFloat(document.getElementById('multiSpacing').value) || 2;
+            res = ConduitMath.calcMultiRun(v1, v2, angle, spec.takeup, spec.clr, totalPipes, spacing);
+        } else if (currentTab === 4) {
             const pIndex = parseInt(document.getElementById('pipeIndex').value) || 0;
             const spacing = parseFloat(document.getElementById('pipeSpacing').value) || 2;
             res = ConduitMath.calcParallelOffset(v1, v2, angle, spec.takeup, spec.clr, pIndex, spacing);
-        } else {
-            if (calcType === 'stub') {
-                res = ConduitMath.calcStub(v1, spec.takeup);
-            } else if (calcType === 'offset') {
-                res = ConduitMath.calcOffset(v1, v2, angle, spec.takeup, spec.clr);
-            } else if (calcType === 'kick') {
-                res = ConduitMath.calcKick(v1, v2, angle, spec.takeup, spec.clr);
-            } else if (calcType === 'saddle3') {
-                res = ConduitMath.calcSaddle3(v1, v2, angle, spec.clr);
-            } else if (calcType === 'saddle4') {
-                res = ConduitMath.calcSaddle4(v1, v2, width, angle, spec.clr);
-            }
         }
 
         if (!res) return;
 
         let marksHTML = '';
         res.marks.forEach(m => {
-            marksHTML += `<div class="mark-item"><b>${m.label}:</b> ${m.formatted} <span style="font-size:13px; color:#888;">(${m.value.toFixed(2)}")</span></div>`;
+            marksHTML += `<div class="mark-item"><b>${m.label}:</b> ${m.formatted}</div>`;
         });
         document.getElementById('marksOutput').innerHTML = marksHTML;
 
