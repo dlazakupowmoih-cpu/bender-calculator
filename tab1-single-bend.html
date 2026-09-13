@@ -3,11 +3,7 @@
     <div class="form-row">
         <div class="form-group">
             <label>Тип трубы</label>
-            <select id="s-conduit-type" onchange="tab1.updateSizeOptions()">
-                <option value="emt">EMT</option>
-                <option value="imc">IMC</option>
-                <option value="rigid">Rigid</option>
-            </select>
+            <select id="s-conduit-type"></select>
         </div>
         <div class="form-group">
             <label>Размер трубы</label>
@@ -17,7 +13,7 @@
 
     <div class="form-group">
         <label>Вид изгиба</label>
-        <select id="s-bend-type" onchange="tab1.toggleSingleInputs()">
+        <select id="s-bend-type">
             <option value="stub">90° Stub-up (Прямой угол)</option>
             <option value="offset">Offset (Классический оффсет)</option>
             <option value="offset_box">Offset to Box (Заводка в коробку)</option>
@@ -28,7 +24,7 @@
 
     <div class="form-group" id="s-angle-group-container">
         <label>Угол изгиба оффсета / седла</label>
-        <select id="s-bend-angle" onchange="tab1.handleSingleAngleChange()">
+        <select id="s-bend-angle">
             <option value="10">10° (плавный)</option>
             <option value="22.5">22.5° (стандарт)</option>
             <option value="30" selected>30° (ходовой)</option>
@@ -38,8 +34,8 @@
         <div id="s-custom-slider-wrap" style="display:none; margin-top:8px;">
             <label>Кастомный угол: <span id="s-slider-val-lbl">30</span>°</label>
             <div class="slider-row" style="display:flex; gap:8px; align-items:center;">
-                <input type="range" id="s-custom-slider" min="1" max="89" step="0.5" value="30" oninput="tab1.syncSingleSlider(this.value)" style="flex:3;">
-                <input type="number" id="s-custom-num" min="1" max="89" step="0.5" value="30" oninput="tab1.syncSingleNum(this.value)" style="flex:1; text-align:center;">
+                <input type="range" id="s-custom-slider" min="1" max="89" step="0.5" value="30">
+                <input type="number" id="s-custom-num" min="1" max="89" step="0.5" value="30" style="width:60px; text-align:center;">
             </div>
         </div>
     </div>
@@ -68,7 +64,7 @@
         </div>
     </div>
 
-    <button class="btn" onclick="tab1.calculateSingleBend()">Рассчитать разметку</button>
+    <button class="btn" id="btn-calc-single">Рассчитать разметку</button>
 
     <div id="s-results" class="results" style="display:none;"></div>
     <div id="s-instructions" class="instructions" style="display:none;"></div>
