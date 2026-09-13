@@ -117,7 +117,72 @@ const tab3 = (function() {
     }
 
     function calculateMultiRun() {
-        // ... Полный код вычислений из предыдущих сообщений
+        const conduitType = document.getElementById('m-conduit-type').value;
+        const sizeSel = document.getElementById('m-conduit-size');
+        const errContainer = document.getElementById('m-error-container');
+        errContainer.innerHTML = '';
+
+        if (sizeSel.options.length === 0) {
+            errContainer.innerHTML = `<div style="color:#ef4444; margin-top:8px;">Ошибка: выберите размер трубы.</div>`;
+            return;
+        }
+
+        const opt = sizeSel.options[sizeSel.selectedIndex];
+        const takeup = parseFloat(opt.getAttribute('data-takeup')) || 6;
+        const clr = parseFloat(opt.getAttribute('data-clr')) || 4.375;
+
+        const bendItems = document.querySelectorAll('.bend-item');
+        if (bendItems.length === 0) {
+            errContainer.innerHTML = `<div style="color:#ef4444; margin-top:8px;">Добавьте хотя бы один гиб в цепочку.</div>`;
+            return;
+        }
+
+        let resHtml = `<div>⚙️ Параметры трубы (${conduitType.toUpperCase()} ${sizeSel.value}" ): Take-up = <b>${takeup}"</b> | CLR = <b>${clr}"</b></div><hr style="border-color:#374151; margin:8px 0;">`;
+        let stepsSummary = `<h4>Порядок выполнения:</h4><ol>`;
+
+        bendItems.forEach((item, index) => {
+            const id = item.id.replace('m-item-', '');
+            const type = document.getElementById(`m-type-${id}`).value;
+            const v1 = getSplitVal(`m-v1-whole-${id}`, `m-v1-frac-${id}`);
+            const v2 = getSplitVal(`m-v2-whole-${id}`, `m-v2-frac-${id}`);
+            
+            let description = `Гиб #${index + 1} (${type.toUpperCase()}): `;
+
+            if (type === 'stub') {
+                const mark = v1 - takeup;
+                description += `Метка на <b>${formatInches(mark)}</b> (согнуть на 90°)`;
+                stepsSummary += `<li>Отмерьте ${formatInches(mark)} от торца и сделайте 90° stub-up.</li>`;
+            } else {
+                const angleSelect = document.getElementById(`m-angle-${id}`);
+                const angleDeg = angleSelect ? parseFloat(angleSelect.value) : 30;
+                const rad = angleDeg * Math.PI / 180;
+                const multiplier = 1 / Math.sin(rad);
+                const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
+                const centerShift = clr * Math.tan(rad / 2);
+
+                if (type === 'offset') {
+                    const m1 = v1 + shrink - centerShift;
+                    const dist = v2 * multiplier;
+                    const m2 = m1 + dist;
+                    description += `Оффсет: М1 = <b>${formatInches(m1)}</b>, М2 = <b>${formatInches(m2)}</b> (${angleDeg}°)`;
+                    stepsSummary += `<li>Сделайте оффсет под ${angleDeg}° по меткам ${formatInches(m1)} и ${formatInches(m2)}.</li>`;
+                } else {
+                    description += `Сложный элемент (${type}) позиция ${formatInches(v1)}`;
+                    stepsSummary += `<li>Выполните гиб типа ${type} в позиции ${formatInches(v1)}.</li>`;
+                }
+            }
+            resHtml += `<div style="margin-bottom:6px;">${description}</div>`;
+        });
+
+        stepsSummary += `</ol>`;
+
+        const resDiv = document.getElementById('m-results');
+        resDiv.style.display = 'block';
+        resDiv.innerHTML = resHtml;
+
+        const instDiv = document.getElementById('m-instructions');
+        instDiv.style.display = 'block';
+        instDiv.innerHTML = stepsSummary;
     }
 
     function init() {
