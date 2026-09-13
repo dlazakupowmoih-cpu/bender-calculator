@@ -1,3 +1,18 @@
+document.querySelectorAll('.tab-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    const tabId = button.getAttribute('data-tab');
+
+    // Убираем активность со всех кнопок и вкладок
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+    // Добавляем активность на нажатую кнопку и нужную вкладку
+    button.classList.add('active');
+    const activeTab = document.getElementById(tabId);
+    if (activeTab) activeTab.classList.add('active');
+  });
+});
+
 // ------------------------------------
 // Константы и утилиты
 // ------------------------------------
