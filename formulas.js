@@ -3,7 +3,6 @@ const ConduitMath = {
         return deg * Math.PI / 180;
     },
 
-    // Форматирование десятичных дюймов в строительные дроби (шаг 1/16")
     formatInches(value) {
         if (isNaN(value) || value < 0) return '0"';
         const inches = Math.floor(value);
@@ -45,21 +44,19 @@ const ConduitMath = {
         return `${inches} ${closest.str}`;
     },
 
-    // Расчет Stub-up (обычный вертикальный подъем)
     calcStub(targetHeight, takeup) {
         const result = targetHeight - takeup;
         return {
             marks: [{ label: 'Точка гиба', value: result, formatted: this.formatInches(result) }],
             steps: [
-                `Отмерь от конца трубы общую высоту: <b>${this.formatInches(targetHeight)}</b>.`,
-                `Вычти takeup бендера для этого размера: <b>${this.formatInches(takeup)}</b>.`,
+                `Отмерь от конца трубы нужную высоту: <b>${this.formatInches(targetHeight)}</b>.`,
+                `Вычти takeup бендера: <b>${this.formatInches(takeup)}</b>.`,
                 `Поставь отметку на расстоянии <b>${this.formatInches(result)}</b> от конца трубы.`,
                 `Заряди трубу в трубогиб стрелкой к концу и гни до упора.`
             ]
         };
     },
 
-    // Расчет Offset (смещение / кик)
     calcOffset(v1, v2, angleDeg, takeup, clr) {
         const rad = this.toRad(angleDeg);
         const multiplier = 1 / Math.sin(rad);
@@ -76,15 +73,56 @@ const ConduitMath = {
                 { label: 'Вторая отметка (M2)', value: m2, formatted: this.formatInches(m2) }
             ],
             steps: [
-                `Базовая отметка от конца трубы: <b>${this.formatInches(v1)}</b>. Усадка с учетом угла: <b>${this.formatInches(shrink)}</b>.`,
+                `Базовая отметка: <b>${this.formatInches(v1)}</b>. Усадка: <b>${this.formatInches(shrink)}</b>.`,
                 `<b>Первая отметка (M1):</b> Поставь метку на расстоянии <b>${this.formatInches(m1)}</b> от конца трубы.`,
-                `<b>Вторая отметка (M2):</b> Отмерь от первой метки M1 расстояние <b>${this.formatInches(dist)}</b> (дистанция между гибами) и поставь вторую метку.`,
-                `<b>Гибка:</b> Согни первый гиб на M1 под углом ${angleDeg}°. Переверни трубу и согни второй гиб на M2 в ту же сторону.`
+                `<b>Вторая отметка (M2):</b> Отмерь от M1 расстояние <b>${this.formatInches(dist)}</b> и поставь вторую метку.`,
+                `<b>Гибка:</b> Первый гиб на M1 под углом ${angleDeg}°. Второй гиб на M2 в ту же сторону.`
             ]
         };
     },
 
-    // Расчет 3-точечного сэдла (3-Point Saddle)
+    calcKick(v1, v2, angleDeg, takeup, clr) {
+        const rad = this.toRad(angleDeg);
+        const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
+        const centerShift = clr * Math.tan(rad / 2);
+        const m1 = v1 + shrink - centerShift;
+
+        return {
+            marks: [
+                { label: 'Отметка кика (M1)', value: m1, formatted: this.formatInches(m1) }
+            ],
+            steps: [
+                `Базовая отметка: <b>${this.formatInches(v1)}</b>. Усадка: <b>${this.formatInches(shrink)}</b>.`,
+                `<b>Отметка (M1):</b> Поставь метку на расстоянии <b>${this.formatInches(m1)}</b> от конца.`,
+                `<b>Гибка:</b> Согни трубу на отметке M1 под углом <b>${angleDeg}°</b>.`
+            ]
+        };
+    },
+
+    calcParallelOffset(v1, v2, angleDeg, takeup, clr, pipeIndex, spacing) {
+        const rad = this.toRad(angleDeg);
+        const multiplier = 1 / Math.sin(rad);
+        const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
+        const centerShift = clr * Math.tan(rad / 2);
+        
+        const m1 = v1 + shrink - centerShift + (pipeIndex * spacing * (1 / Math.tan(rad)));
+        const dist = v2 * multiplier;
+        const m2 = m1 + dist;
+
+        return {
+            marks: [
+                { label: `Труба #${pipeIndex + 1} — Метка M1`, value: m1, formatted: this.formatInches(m1) },
+                { label: `Труба #${pipeIndex + 1} — Метка M2`, value: m2, formatted: this.formatInches(m2) }
+            ],
+            steps: [
+                `<b>Параллельный ряд (Труба #${pipeIndex + 1}):</b> Шаг между осями: <b>${this.formatInches(spacing)}</b>.`,
+                `<b>Первая отметка (M1):</b> Поставь метку на расстоянии <b>${this.formatInches(m1)}</b>.`,
+                `<b>Вторая отметка (M2):</b> Отмерь от M1 расстояние <b>${this.formatInches(dist)}</b>.`,
+                `<b>Гибка:</b> Гни оба гиба под углом <b>${angleDeg}°</b> в одной плоскости.`
+            ]
+        };
+    },
+
     calcSaddle3(v1, v2, angleDeg, clr) {
         const rad = this.toRad(angleDeg);
         const multiplier = 1 / Math.sin(rad);
@@ -105,10 +143,42 @@ const ConduitMath = {
                 { label: 'Правая отметка (M3)', value: m3, formatted: this.formatInches(m3) }
             ],
             steps: [
-                `<b>Центр препятствия:</b> Базовая точка на трубе: <b>${this.formatInches(v1)}</b>. Общая усадка сэдла: <b>${this.formatInches(saddleShrink)}</b>.`,
-                `<b>Центр (M2):</b> Поставь центральную отметку на расстоянии <b>${this.formatInches(m2)}</b> от конца.`,
-                `<b>Боковые точки (M1 и M3):</b> Отмерь от центра M2 расстояние <b>${this.formatInches(dist)}</b> в обе стороны с учетом поправки центра.`,
-                `<b>Гибка:</b> Центральный гиб на M2 гни под углом <b>${centerAngle}°</b>. Боковые гибы на M1 и M3 — под углом <b>${angleDeg}°</b> в противоположную сторону.`
+                `<b>Центр препятствия:</b> Базовая точка: <b>${this.formatInches(v1)}</b>. Усадка сэдла: <b>${this.formatInches(saddleShrink)}</b>.`,
+                `<b>Центр (M2):</b> Поставь отметку на расстоянии <b>${this.formatInches(m2)}</b>.`,
+                `<b>Боковые точки (M1 и M3):</b> Отмерь от центра M2 расстояние <b>${this.formatInches(dist)}</b> в обе стороны.`,
+                `<b>Гибка:</b> Центр (M2) — угол <b>${centerAngle}°</b>. Боковые (M1, M3) — угол <b>${angleDeg}°</b> в противоположную сторону.`
+            ]
+        };
+    },
+
+    calcSaddle4(v1, v2, obstacleWidth, angleDeg, clr) {
+        const rad = this.toRad(angleDeg);
+        const multiplier = 1 / Math.sin(rad);
+        const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
+        const centerShift = clr * Math.tan(rad / 2);
+
+        const totalShrink = 2 * shrink;
+        const adjCenter = v1 + totalShrink;
+        const dist = v2 * multiplier;
+        const halfWidth = obstacleWidth / 2;
+
+        const m2 = adjCenter - halfWidth;
+        const m3 = adjCenter + halfWidth;
+        const m1 = m2 - dist - centerShift;
+        const m4 = m3 + dist + centerShift;
+
+        return {
+            marks: [
+                { label: 'Внешняя левая (M1)', value: m1, formatted: this.formatInches(m1) },
+                { label: 'Внутренняя левая (M2)', value: m2, formatted: this.formatInches(m2) },
+                { label: 'Внутренняя правая (M3)', value: m3, formatted: this.formatInches(m3) },
+                { label: 'Внешняя правая (M4)', value: m4, formatted: this.formatInches(m4) }
+            ],
+            steps: [
+                `<b>Препятствие:</b> Центр: <b>${this.formatInches(v1)}</b>, ширина: <b>${this.formatInches(obstacleWidth)}</b>. Усадка: <b>${this.formatInches(totalShrink)}</b>.`,
+                `<b>Внутренние гибы (M2, M3):</b> Отмерь края препятствия от скорректированного центра.`,
+                `<b>Внешние гибы (M1, M4):</b> Отложи расстояние <b>${this.formatInches(dist)}</b> наружу от точек M2 и M3.`,
+                `<b>Гибка:</b> Выполни все 4 гиба под углом <b>${angleDeg}°</b>.`
             ]
         };
     }
