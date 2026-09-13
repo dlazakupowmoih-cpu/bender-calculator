@@ -147,6 +147,15 @@ const tab1 = (function() {
         document.getElementById('s-conduit-type').addEventListener('change', updateSizeOptions);
         document.getElementById('s-bend-type').addEventListener('change', toggleSingleInputs);
         document.getElementById('s-bend-angle').addEventListener('change', handleSingleAngleChange);
+
+        document.getElementById('s-custom-slider').addEventListener('input', (e) => {
+            syncSingleSlider(e.target.value);
+        });
+        document.getElementById('s-custom-num').addEventListener('input', (e) => {
+            syncSingleNum(e.target.value);
+        });
+
+        document.getElementById('btn-calc-single').addEventListener('click', calculateSingleBend);
     }
 
     return {
