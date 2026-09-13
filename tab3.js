@@ -54,10 +54,10 @@ const tab3 = (function() {
         if (!container) return;
 
         const html = `
-            <div class="bend-item" id="m-item-${id}" style="background:#030712; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:#60a5fa; margin-bottom:8px;">
+            <div class="bend-item" id="m-item-${id}" style="background:#0b0f19; border:1px solid #1f2937; border-radius:10px; padding:14px; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:#60a5fa; margin-bottom:10px; font-size:0.9rem;">
                     <span>Гиб #${id}</span>
-                    <button type="button" onclick="document.getElementById('m-item-${id}').remove()" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Удалить</button>
+                    <button type="button" onclick="document.getElementById('m-item-${id}').remove()" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:0.8rem;">Удалить</button>
                 </div>
                 <div class="form-group">
                     <label>Вид изгиба</label>
@@ -79,21 +79,21 @@ const tab3 = (function() {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Позиция / Метка</label>
+                    <label>Позиция / Метка (V1)</label>
                     <div class="inch-split">
                         <input type="number" id="m-v1-whole-${id}" value="12" min="0" />
                         <select id="m-v1-frac-${id}" class="frac-select"></select>
                     </div>
                 </div>
                 <div class="form-group" id="m-group-v2-${id}">
-                    <label>Глубина / Подъем</label>
+                    <label>Глубина / Подъем (V2)</label>
                     <div class="inch-split">
                         <input type="number" id="m-v2-whole-${id}" value="4" min="0" />
                         <select id="m-v2-frac-${id}" class="frac-select"></select>
                     </div>
                 </div>
                 <div class="form-group" id="m-group-v3-${id}" style="display:none;">
-                    <label>Ширина препятствия</label>
+                    <label>Ширина препятствия (V3)</label>
                     <div class="inch-split">
                         <input type="number" id="m-v3-whole-${id}" value="6" min="0" />
                         <select id="m-v3-frac-${id}" class="frac-select"></select>
@@ -126,7 +126,7 @@ const tab3 = (function() {
         if (errContainer) errContainer.innerHTML = '';
 
         if (!sizeSel || sizeSel.options.length === 0) {
-            if (errContainer) errContainer.innerHTML = `<div style="color:#ef4444; padding:8px; background:#1e1b4b; border-radius:6px; margin-top:8px;">Ошибка: выберите размер трубы.</div>`;
+            if (errContainer) errContainer.innerHTML = `<div style="color:#ef4444; padding:10px; background:#1e1b4b; border-radius:8px; margin-top:8px;">Ошибка: выберите размер трубы.</div>`;
             return;
         }
 
@@ -136,7 +136,7 @@ const tab3 = (function() {
 
         const bendItems = document.querySelectorAll('.bend-item');
         if (bendItems.length === 0) {
-            if (errContainer) errContainer.innerHTML = `<div style="color:#ef4444; padding:8px; background:#1e1b4b; border-radius:6px; margin-top:8px;">Добавьте хотя бы один гиб.</div>`;
+            if (errContainer) errContainer.innerHTML = `<div style="color:#ef4444; padding:10px; background:#1e1b4b; border-radius:8px; margin-top:8px;">Добавьте хотя бы один гиб.</div>`;
             return;
         }
 
@@ -144,7 +144,7 @@ const tab3 = (function() {
         let hasError = false;
         let errorMessage = "";
 
-        // Проверка каждого гиба на корректность и уход в минус
+        // Сбор данных и расчет точных границ разметки для каждого гиба
         bendItems.forEach((item, index) => {
             const id = item.id.replace('m-item-', '');
             const type = document.getElementById(`m-type-${id}`).value;
@@ -153,53 +153,81 @@ const tab3 = (function() {
             const v3 = getSplitVal(`m-v3-whole-${id}`, `m-v3-frac-${id}`);
             const angleDeg = parseFloat(document.getElementById(`m-angle-${id}`)?.value) || 30;
 
+            let minMark = v1;
+            let maxMark = v1;
+
             if (type === 'stub') {
                 const mark = ConduitMath.calcStub(v1, takeup);
+                minMark = Math.min(v1, mark);
+                maxMark = Math.max(v1, mark);
                 if (mark < 0) {
                     hasError = true;
-                    errorMessage = `Гиб #${index + 1} (Stub): метка уходит в минус (${formatInches(mark)}). Базовое расстояние V1 меньше Take-up (${takeup}").`;
+                    errorMessage = `Гиб #${index + 1} (Stub): метка уходит в минус (${formatInches(mark)}).`;
                 }
             } else if (type === 'offset') {
                 const res = ConduitMath.calcOffset(v1, v2, angleDeg, takeup, clr);
+                minMark = Math.min(res.m1, res.m2);
+                maxMark = Math.max(res.m1, res.m2);
                 if (res.m1 < 0 || res.m2 < 0) {
                     hasError = true;
-                    errorMessage = `Гиб #${index + 1} (Offset): одна из меток уходит в минус (М1: ${formatInches(res.m1)}, М2: ${formatInches(res.m2)}).`;
+                    errorMessage = `Гиб #${index + 1} (Offset): метки уходят в минус (М1: ${formatInches(res.m1)}, М2: ${formatInches(res.m2)}).`;
                 }
+            } else if (type === 'kick') {
+                const shrink = ConduitMath.getShrink(v2, angleDeg);
+                const mark = v1 + shrink;
+                minMark = Math.min(v1, mark);
+                maxMark = Math.max(v1, mark);
             } else if (type === 'saddle3') {
                 const res = ConduitMath.calcSaddle3(v1, v2, angleDeg, clr);
+                minMark = Math.min(res.m1, res.m3);
+                maxMark = Math.max(res.m1, res.m3);
                 if (res.m1 < 0 || res.m3 < 0) {
                     hasError = true;
-                    errorMessage = `Гиб #${index + 1} (3-Point Saddle): метки выходят за пределы трубы (уходят в минус).`;
+                    errorMessage = `Гиб #${index + 1} (3-Point): метки уходят в минус.`;
                 }
             } else if (type === 'saddle4') {
                 const res = ConduitMath.calcSaddle4(v1, v2, v3, angleDeg, clr);
+                minMark = Math.min(res.m1, res.m4);
+                maxMark = Math.max(res.m1, res.m4);
                 if (res.m1 < 0 || res.m4 < 0) {
                     hasError = true;
-                    errorMessage = `Гиб #${index + 1} (4-Point Saddle): метки выходят за пределы трубы (уходят в минус).`;
+                    errorMessage = `Гиб #${index + 1} (4-Point): метки уходят в минус.`;
                 }
             }
 
-            parsedBends.push({ index: index + 1, v1 });
+            parsedBends.push({ index: index + 1, v1: v1, min: minMark, max: maxMark });
         });
 
         if (hasError) {
-            if (errContainer) errContainer.innerHTML = `<div style="color:#ef4444; padding:8px; background:#1e1b4b; border-radius:6px; margin-top:8px;">⚠️ <b>Ошибка расчета:</b> ${errorMessage}</div>`;
+            if (errContainer) errContainer.innerHTML = `<div style="color:#ef4444; padding:10px; background:#1e1b4b; border-radius:8px; margin-top:8px;">⚠️ <b>Ошибка:</b> ${errorMessage}</div>`;
             if (resDiv) resDiv.style.display = 'none';
             if (instDiv) instDiv.style.display = 'none';
             return;
         }
 
-        // Предупреждение, если гибы идут в обратном порядке по трубе
-        for (let i = 0; i < parsedBends.length - 1; i++) {
-            if (parsedBends[i].v1 > parsedBends[i + 1].v1) {
-                if (errContainer) {
-                    errContainer.innerHTML = `<div style="color:#f59e0b; padding:8px; background:#1e1b4b; border-radius:6px; margin-top:8px;">⚠️ <b>Предупреждение:</b> Гиб #${parsedBends[i].index} расположен дальше по трубе (V1 = ${parsedBends[i].v1}"), чем следующий гиб #${parsedBends[i + 1].index} (V1 = ${parsedBends[i + 1].v1}"). Проверьте последовательность.</div>`;
-                }
+        // Проверка порядка и наложения меток по ходу трубы (сортируем по старту V1)
+        let sortedBends = [...parsedBends].sort((a, b) => a.v1 - b.v1);
+
+        for (let i = 0; i < sortedBends.length - 1; i++) {
+            let current = sortedBends[i];
+            let next = sortedBends[i + 1];
+
+            // Если следующий гиб начинается раньше, чем закончились метки текущего гиба
+            if (next.v1 < current.max) {
+                hasError = true;
+                errorMessage = `Гиб #${next.index} (старт V1 = ${formatInches(next.v1)}) попадает внутрь зоны разметки Гиба #${current.index} (заканчивается на ${formatInches(current.max)})!`;
                 break;
             }
         }
 
-        let resHtml = `<div>⚙️ Параметры: Take-up = <b>${takeup}"</b> | CLR = <b>${clr}"</b></div><hr style="border-color:#374151; margin:8px 0;">`;
+        if (hasError) {
+            if (errContainer) errContainer.innerHTML = `<div style="color:#ef4444; padding:10px; background:#1e1b4b; border-radius:8px; margin-top:8px;">⚠️ <b>Конфликт разметки:</b> ${errorMessage}</div>`;
+            if (resDiv) resDiv.style.display = 'none';
+            if (instDiv) instDiv.style.display = 'none';
+            return;
+        }
+
+        let resHtml = `<div>⚙️ Параметры: Take-up = <b>${takeup}"</b> | CLR = <b>${clr}"</b></div><hr style="border-color:#1f2937; margin:10px 0;">`;
         let stepsSummary = `<h4>Порядок выполнения:</h4><ol>`;
 
         bendItems.forEach((item, index) => {
