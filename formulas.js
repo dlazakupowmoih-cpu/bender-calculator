@@ -1,26 +1,32 @@
 const ConduitMath = {
+    // Перевод градусов в радианы
     toRad(deg) {
         return deg * Math.PI / 180;
     },
 
+    // Множитель гиба (гипотенуза для смещения)
     getMultiplier(angleDeg) {
         return 1 / Math.sin(this.toRad(angleDeg));
     },
 
+    // Расчет усадки (shrink) на 1 дюйм глубины
     getShrink(depth, angleDeg) {
         const rad = this.toRad(angleDeg);
         return depth * ((1 - Math.cos(rad)) / Math.sin(rad));
     },
 
+    // Поправка на радиус гиба / вынос центра (center shift / gain adjustment)
     getCenterShift(clr, angleDeg) {
         const rad = this.toRad(angleDeg);
         return clr * Math.tan(rad / 2);
     },
 
+    // Классический вертикальный подъем (Stub-up)
     calcStub(targetHeight, takeup) {
         return targetHeight - takeup;
     },
 
+    // Расчет смещения (Offset / Kick)
     calcOffset(v1, v2, angleDeg, takeup, clr) {
         const rad = this.toRad(angleDeg);
         const multiplier = 1 / Math.sin(rad);
@@ -33,6 +39,8 @@ const ConduitMath = {
         return { m1, m2, shrink, dist, centerShift };
     },
 
+    // Расчет 3-точечного сэдла (3-Point Saddle)
+    // Важно: angleDeg — это угол БОКОВЫХ гибов (центральный гиб будет равен 2 * angleDeg)
     calcSaddle3(v1, v2, angleDeg, clr) {
         const rad = this.toRad(angleDeg);
         const multiplier = 1 / Math.sin(rad);
@@ -40,20 +48,22 @@ const ConduitMath = {
         const centerShift = clr * Math.tan(rad / 2);
         
         const saddleShrink = 2 * shrink;
-        const m2 = v1 + saddleShrink;
+        const m2 = v1 + saddleShrink; // Центральная отметка
         const dist = v2 * multiplier;
-        const m1 = m2 - dist - centerShift;
-        const m3 = m2 + dist + centerShift;
+        const m1 = m2 - dist - centerShift; // Левая отметка
+        const m3 = m2 + dist + centerShift; // Правая отметка
         return { m1, m2, m3, saddleShrink, dist };
     },
 
+    // Расчет 4-точечного сэдла (4-Point / Box Saddle)
+    // angleDeg — угол для всех четырех одинаковых гибов
     calcSaddle4(v1, v2, obstacleWidth, angleDeg, clr) {
         const rad = this.toRad(angleDeg);
         const multiplier = 1 / Math.sin(rad);
         const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
         const centerShift = clr * Math.tan(rad / 2);
 
-        const totalShrink = 2 * shrink;
+        const totalShrink = 2 * shrink; // Усадка с двух сторон препятствия
         const adjCenter = v1 + totalShrink;
         const dist = v2 * multiplier;
         const halfWidth = obstacleWidth / 2;
@@ -66,6 +76,7 @@ const ConduitMath = {
     }
 };
 
+// Функция форматирования десятичных дюймов в строительные дроби (шаг 1/16")
 function formatInches(value) {
     if (isNaN(value)) return '0"';
     const inches = Math.floor(value);
