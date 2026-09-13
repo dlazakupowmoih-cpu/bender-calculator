@@ -7,9 +7,8 @@
   --text-muted: #9ca3af;
   --border: #374151;
   --danger: #ef4444;
-  --marked-point-color: #fbbf24; /* яркий желтый для меток */
+  --marked-point-color: #fbbf24;
 }
-
 body {
   background: var(--bg-color);
   color: var(--text-main);
@@ -18,24 +17,20 @@ body {
   margin: 20px auto;
   padding: 16px;
 }
-
 header {
   text-align: center;
   margin-bottom: 20px;
 }
-
 header h1 {
   color: var(--accent);
   font-size: 1.8rem;
   margin-bottom: 6px;
 }
-
 header p {
   color: var(--text-muted);
   font-size: 1rem;
   margin: 0;
 }
-
 .tabs-container {
   display: flex;
   gap: 6px;
@@ -43,7 +38,6 @@ header p {
   overflow-x: auto;
   padding-bottom: 4px;
 }
-
 .tab-btn {
   background-color: var(--card-bg);
   border: 1px solid var(--border);
@@ -56,26 +50,21 @@ header p {
   white-space: nowrap;
   transition: all 0.2s;
 }
-
 .tab-btn:hover {
   border-color: var(--accent);
   color: var(--text-main);
 }
-
 .tab-btn.active {
   background-color: var(--accent);
   color: white;
   border-color: var(--accent);
 }
-
 .tab-content {
   display: none;
 }
-
 .tab-content.active {
   display: block;
 }
-
 .card {
   background: var(--card-bg);
   border-radius: 12px;
@@ -85,7 +74,6 @@ header p {
   margin-bottom: 20px;
   position: relative;
 }
-
 label {
   display: block;
   margin-top: 14px;
@@ -93,7 +81,6 @@ label {
   font-weight: 600;
   font-size: 1rem;
 }
-
 select,
 input[type=number] {
   background: #030712;
@@ -106,21 +93,17 @@ input[type=number] {
   padding: 8px;
   box-sizing: border-box;
 }
-
 .inch-split {
   display: flex;
   gap: 6px;
   margin-top: 6px;
 }
-
 .inch-split input {
   flex: 3;
 }
-
 .inch-split select {
   flex: 2;
 }
-
 button {
   margin-top: 24px;
   width: 100%;
@@ -134,11 +117,9 @@ button {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
-
 button:hover {
   background: var(--accent-hover);
 }
-
 .results {
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid var(--accent);
@@ -150,12 +131,10 @@ button:hover {
   line-height: 1.5;
   color: #e0e7ff;
 }
-
 .marked-point {
   font-weight: 700;
   color: var(--marked-point-color);
 }
-
 .error-banner {
   background-color: rgba(239, 68, 68, 0.15);
   border: 1px solid var(--danger);
@@ -165,31 +144,24 @@ button:hover {
   margin-bottom: 12px;
   font-size: 0.85rem;
 }
-
 .custom-angle-wrapper {
   margin-top: 10px;
   display: flex;
   gap: 10px;
 }
-
 .custom-angle-wrapper input[type=range] {
   flex-grow: 1;
 }
-
 .custom-angle-wrapper input[type=number] {
   width: 80px;
 }
-
-/* Scroll bar for tabs container */
 .tabs-container::-webkit-scrollbar {
   height: 6px;
 }
-
 .tabs-container::-webkit-scrollbar-thumb {
   background: var(--accent);
   border-radius: 6px;
 }
-
 .tabs-container::-webkit-scrollbar-track {
   background: var(--card-bg);
 }
