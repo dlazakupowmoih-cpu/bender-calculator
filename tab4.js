@@ -1,6 +1,5 @@
 const tab4 = (function() {
     let pipeCounter = 0;
-
     const specs = conduitSpecs;
 
     function populateFractions(selector = '.frac-select') {
