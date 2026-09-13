@@ -1,5 +1,3 @@
-// Общие константы, функции и спецификации труб
-
 const conduitSpecs = {
     emt: { 
         '1/2': {takeup: 5, clr: 4.0}, 
@@ -27,7 +25,6 @@ const conduitSpecs = {
     }
 };
 
-// Функция для форматирования дюймов в дробные
 function formatInches(inches) {
     if (inches < 0) inches = 0;
     const totalSixteenths = Math.round(inches * 16);
@@ -42,14 +39,12 @@ function formatInches(inches) {
     return whole === 0 ? `${num}/${den}"` : `${whole} ${num}/${den}"`;
 }
 
-// Возвращает значение из двух инпутов в дробном формате: целое + дробь
 function getSplitVal(wholeId, fracId) {
     const whole = parseFloat(document.getElementById(wholeId).value) || 0;
     const frac = parseFloat(document.getElementById(fracId).value) || 0;
     return whole + frac;
 }
 
-// Заполнение селектов дробей 16-ых
 function populateFractionSelects(selector = '.frac-select') {
     const optionsHtml = `
         <option value="0">0</option>
