@@ -1,11 +1,15 @@
 <div class="card">
     <div class="section-title">Параметры трубы для Multi-Run</div>
-    <div class="form-row">
-        <div class="form-group">
+    <div class="form-row" style="display: flex; gap: 12px;">
+        <div class="form-group" style="flex: 1;">
             <label>Тип трубы</label>
-            <select id="m-conduit-type"></select>
+            <select id="m-conduit-type">
+                <option value="emt" selected>EMT</option>
+                <option value="imc">IMC</option>
+                <option value="rigid">Rigid</option>
+            </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
             <label>Размер трубы</label>
             <select id="m-conduit-size"></select>
         </div>
