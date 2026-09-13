@@ -1,11 +1,16 @@
 <div class="card">
     <div class="section-title">Параметры трубы и геометрии</div>
-    <div class="form-row">
-        <div class="form-group">
+    
+    <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 12px;">
+        <div class="form-group" style="flex: 1;">
             <label>Тип трубы</label>
-            <select id="s-conduit-type"></select>
+            <select id="s-conduit-type">
+                <option value="emt">EMT</option>
+                <option value="imc">IMC</option>
+                <option value="rigid">Rigid</option>
+            </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
             <label>Размер трубы</label>
             <select id="s-conduit-size"></select>
         </div>
