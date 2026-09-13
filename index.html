@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Калькулятор изгибов труб - Pipe Bender</title>
+<title>Калькулятор изгибов труб</title>
 <style>
   :root {
     --bg-color: #0b0f19;
@@ -14,6 +14,8 @@
     --text-muted: #9ca3af;
     --border: #374151;
     --danger: #ef4444;
+    --hint-bg: #153150;
+    --hint-border: #3b82f6;
     --marked-point-color: #fbbf24;
   }
   body {
@@ -24,27 +26,10 @@
     margin: 20px auto;
     padding: 16px;
   }
-  header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  header h1 {
-    color: var(--accent);
-    font-size: 1.8rem;
-    margin-bottom: 6px;
-  }
-  header p {
-    color: var(--text-muted);
-    font-size: 1rem;
-    margin: 0;
-  }
-  .tabs-container {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
+  header { text-align: center; margin-bottom: 20px; }
+  header h1 { color: var(--accent); font-size: 1.8rem; margin-bottom: 6px; }
+  header p { color: var(--text-muted); font-size: 1rem; margin: 0; }
+  .tabs-container { display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
   .tab-btn {
     background-color: var(--card-bg);
     border: 1px solid var(--border);
@@ -57,36 +42,20 @@
     white-space: nowrap;
     transition: all 0.2s;
   }
-  .tab-btn:hover {
-    border-color: var(--accent);
-    color: var(--text-main);
-  }
-  .tab-btn.active {
-    background-color: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-  .tab-content {
-    display: none;
-  }
-  .tab-content.active {
-    display: block;
-  }
+  .tab-btn:hover { border-color: var(--accent); color: var(--text-main); }
+  .tab-btn.active { background-color: var(--accent); color: white; border-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
   .card {
     background: var(--card-bg);
     border-radius: 12px;
     padding: 16px;
-    box-sizing: border-box;
     border: 1px solid var(--border);
     margin-bottom: 20px;
-    position: relative;
   }
   label {
-    display: block;
-    margin-top: 14px;
-    color: var(--text-muted);
-    font-weight: 600;
-    font-size: 1rem;
+    display: block; margin-top: 14px; color: var(--text-muted);
+    font-weight: 600; font-size: 1rem;
   }
   select, input[type=number] {
     background: #030712;
@@ -99,11 +68,7 @@
     padding: 8px;
     box-sizing: border-box;
   }
-  .inch-split {
-    display: flex;
-    gap: 6px;
-    margin-top: 6px;
-  }
+  .inch-split { display: flex; gap: 6px; margin-top: 6px; }
   .inch-split input { flex: 3; }
   .inch-split select { flex: 2; }
   button {
@@ -119,9 +84,7 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-  button:hover {
-    background: var(--accent-hover);
-  }
+  button:hover { background: var(--accent-hover); }
   .results {
     background: rgba(59,130,246,0.1);
     border: 1px solid var(--accent);
@@ -133,22 +96,10 @@
     line-height: 1.5;
     color: #e0e7ff;
   }
-  .marked-point {
-    font-weight: 700;
-    color: var(--marked-point-color);
-  }
-  .error-banner {
-    background-color: rgba(239, 68, 68, 0.15);
-    border: 1px solid var(--danger);
-    color: #fca5a5;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    font-size: 0.85rem;
-  }
+  .marked-point { font-weight: 700; color: var(--marked-point-color); }
   .hint-box {
-    background: #153150;
-    border: 2px solid var(--accent);
+    background: var(--hint-bg);
+    border: 2px solid var(--hint-border);
     border-radius: 12px;
     padding: 12px 16px;
     color: #acd2ff;
@@ -163,14 +114,14 @@
 
 <header>
   <h1>Калькулятор изгибов труб</h1>
-  <p>Профессиональный калькулятор трубогиба с пошаговыми подсказками</p>
+  <p>Профессиональный калькулятор трубогиба с подсказками</p>
 </header>
 
 <div class="tabs-container">
-  <button class="tab-btn active" id="tab-btn-1" onclick="switchTab(event,'tab-single')">1. Одиночный гиб</button>
-  <button class="tab-btn" id="tab-btn-2" onclick="switchTab(event,'tab-angle')">2. Угол по трём измерениям</button>
-  <button class="tab-btn" id="tab-btn-3" onclick="switchTab(event,'tab-multirun')">3. Multi-Run (Цепочка)</button>
-  <button class="tab-btn" id="tab-btn-4" onclick="switchTab(event,'tab-parallel')">4. Параллельные трассы</button>
+  <button class="tab-btn active" onclick="switchTab(event, 'tab-single')">1. Одиночный гиб</button>
+  <button class="tab-btn" onclick="switchTab(event, 'tab-angle')">2. Угол по трём измерениям</button>
+  <button class="tab-btn" onclick="switchTab(event, 'tab-multirun')">3. Multi-Run (Цепочка)</button>
+  <button class="tab-btn" onclick="switchTab(event, 'tab-parallel')">4. Параллельные трассы</button>
 </div>
 
 <div id="tab-single" class="tab-content active">
@@ -209,20 +160,20 @@
       <input type="number" id="single-custom-angle-number" min="1" max="89" step="0.5" value="30" oninput="syncSingleCustomAngleSlider()" />
     </div>
 
-    <label id="single-label-val1">Центр препятствия от стены (дюймы)</label>
+    <label>Центр препятствия от стены (дюймы)</label>
     <div class="inch-split">
       <input type="number" id="single-val1-whole" min="0" value="30" />
       <select id="single-val1-frac"></select>
     </div>
 
-    <label id="single-label-val2">Высота препятствия (дюймы)</label>
+    <label>Высота препятствия (дюймы)</label>
     <div class="inch-split">
       <input type="number" id="single-val2-whole" min="0" value="2" />
       <select id="single-val2-frac"></select>
     </div>
 
     <label id="single-label-val3" style="display:none;">Ширина (плоская часть, дюймы)</label>
-    <div class="inch-split" style="display:none;" id="single-val3-container">
+    <div class="inch-split" id="single-val3-container" style="display:none;">
       <input type="number" id="single-val3-whole" min="0" value="6" />
       <select id="single-val3-frac"></select>
     </div>
@@ -230,15 +181,14 @@
     <button onclick="calculateSingleBend()">Рассчитать разметку</button>
     <div id="single-results" class="results" style="display:none;"></div>
 
-    <div class="hint-box" id="single-hint-box">
+    <div class="hint-box">
       <b>Инструкция по одиночному гибу трубы:</b><br>
-      1) Отмерьте от торца трубы расчетное расстояние и сделайте метку (например, M1).<br>
-      2) Поместите трубу в трубогиб так, чтобы метка совпала с указателем (стрелкой Arrow) на инструменте.<br>
-      3) Проверьте направление трубы: длинный конец направлен к ручке, короткий — фиксирован.<br>
-      4) Аккуратно согните трубу до нужного угла, сохраняя неподвижность инструмента.<br>
-      5) Для оффсета поверните трубу на 180°, совместите вторую метку и повторите изгиб.<br>
-      6) Для седловидных изгибов сгибайте поочередно каждую метку, контролируя плоскость.<br>
-      <i>Примечание: угол 90° доступен только для "90° Stub-up". Для других видов углы доступны до 89°.</i>
+      - Усадка (shrink) учитывается в расчетах — это укорочение после гиба.<br>
+      - Отмерьте расстояния до меток (M1, M2, ...), сделайте их четкими.<br>
+      - Вставьте трубу в бендер, совместив метку M1 со стрелкой (Arrow).<br>
+      - Гните трубу под нужным углом. Для оффсета изгиб делается дважды с поворотом трубы.<br>
+      - Для седловидных гибов гните по очереди все метки, соблюдая углы.<br>
+      - Угол 90° разрешен только для типа Stub-up.<br>
     </div>
   </div>
 </div>
@@ -270,10 +220,10 @@
     <div id="angle-results" class="results" style="display:none;"></div>
 
     <div class="hint-box">
-      <b>Инструкция по измерению и расчету угла:</b><br>
-      Введите значения высоты, ширины и длины участка.<br>
-      Калькулятор вычислит точный угол наклона по трём измерениям, полезный для сложных трасс.<br>
-      Используйте полученные данные для корректной разметки изгибов и монтажа.<br>
+      <b>Инструкция по расчету угла:</b><br>
+      - Введите высоту, ширину и длину подъема.<br>
+      - Калькулятор вычислит точный угол наклона для сложных изгибов.<br>
+      - Используйте полученный угол для точной разметки трубы.<br>
     </div>
   </div>
 </div>
@@ -297,15 +247,16 @@
     <button onclick="addMultiBend()">+ Добавить изгиб</button>
     <button style="margin-top: 12px;" onclick="calculateMultiRun()">Рассчитать цепочку</button>
 
-    <div id="multi-error-container"></div>
     <div id="multi-results" class="results" style="display:none;"></div>
 
     <div class="hint-box">
       <b>Инструкция по Multi-Run:</b><br>
-      Добавляйте изгибы последовательно, задавайте угол и расстояния.<br>
-      Между изгибами оставляйте запас не менее 2 дюймов для корректного монтажа.<br>
-      Для каждого изгиба используйте правила одиночного гиба.<br>
-      Выдерживайте последовательность и точность меток для успешного результата.<br>
+      - Добавляйте изгибы поочередно, указывайте тип, угол, размеры.<br>
+      - Между изгибами оставляйте запас 2 дюйма.<br>
+      - Для видов, кроме Stub-up, обязательно вводите высоту препятствия.<br>
+      - Для 4-Point Saddle также задавайте ширину.<br>
+      - Следуйте меткам (M1, M2, ...) для точной разметки и гиба.<br>
+      - Соблюдайте последовательность гибов.<br>
     </div>
   </div>
 </div>
@@ -366,16 +317,16 @@
 
     <div class="hint-box">
       <b>Инструкция по параллельной трассе:</b><br>
-      Добавляйте трубы по одной, задавая параметры и отступы.<br>
-      Метки для гиба расставляйте, ориентируясь на одиночный гиб.<br>
-      Используйте автоматический шаг для равномерного расстояния между трубами.<br>
-      Проверьте угол и высоту подъема для каждого изгиба.<br>
+      - Добавляйте трубы, задавая параметры и отступы.<br>
+      - Используйте метки, как при одиночном гибе.<br>
+      - Следите за углами и высотой подъема.<br>
+      - Калькулятор выдаст метки (M1, M2) и последовательность гибов для каждой трубы.<br>
     </div>
   </div>
 </div>
 
 <script>
-  // Вconst conduitSpecs = {
+const conduitSpecs = {
   emt: { '1/2': {takeup:5, clr:4.0}, '3/4': {takeup:6, clr:4.375}, '1': {takeup:8, clr:5.75}, '1-1/4': {takeup:11, clr:7.25}, '1-1/2': {takeup:13, clr:8.5}, '2': {takeup:16, clr:10.5} },
   imc: { '1/2': {takeup:6, clr:4.5}, '3/4': {takeup:8, clr:5.5}, '1': {takeup:11, clr:7.0}, '1-1/4': {takeup:14, clr:8.25}, '1-1/2': {takeup:16, clr:9.5}, '2': {takeup:20, clr:12.0} },
   rigid: { '1/2': {takeup:7, clr:4.25}, '3/4': {takeup:10, clr:5.25}, '1': {takeup:12, clr:6.5}, '1-1/4': {takeup:15, clr:8.0}, '1-1/2': {takeup:18, clr:9.25}, '2': {takeup:22, clr:11.5} }
@@ -516,8 +467,8 @@ function calculateSingleBend(){
   const specs = conduitSpecs[ctype][csize];
   if(!specs){alert("Выберите тип и размер трубы.");return;}
   const type = document.getElementById('single-bend-type').value;
-  const angleSel = document.getElementById('single-bend-angle');
-  let angleDeg = angleSel.value=='custom'?parseFloat(document.getElementById('single-custom-angle-number').value):parseFloat(angleSel.value);
+  const angleSelect = document.getElementById('single-bend-angle');
+  let angleDeg = angleSelect.value=='custom'?parseFloat(document.getElementById('single-custom-angle-number').value):parseFloat(angleSelect.value);
 
   if(type==='stub' && angleDeg !== 90){
     alert("Для 90° Stub-up угол должен быть ровно 90°.");
@@ -527,6 +478,7 @@ function calculateSingleBend(){
     alert("Угол 90° доступен только для 90° Stub-up.");
     return;
   }
+
   if(isNaN(angleDeg) || angleDeg <= 0) angleDeg = 30;
 
   const val1 = getSplitVal('single-val1-whole','single-val1-frac');
@@ -546,11 +498,10 @@ function calculateSingleBend(){
 
   if(type==='stub'){
     const mark = val1 - takeup;
-    res += `- Усадка трубы (shrink): ${takeup}"\n`;
-    res += `- Отмерьте от торца трубы ${formatInches(mark)} и сделайте метку.\n`;
-    res += `- Поместите трубу в бендер так, чтобы метка совпала со стрелкой (Arrow).\n`;
-    res += `- Согните трубу ровно на 90°.\n`;
-    res += `\nМетка M1 — точка гиба.\n`;
+    res += `Усадка трубы (shrink) — длина укорочения после гиба: ${takeup}"\n`;
+    res += `Отмерьте от торца трубы ${formatInches(mark)} и сделайте метку (M1).\n`;
+    res += `Совместите метку M1 с стрелкой (Arrow) на бендере.\n`;
+    res += `Гните трубу ровно на 90°.\n`;
   } else if(type==='offset'){
     const hyp = val2 / sin;
     const adj = hyp * cos;
@@ -558,12 +509,12 @@ function calculateSingleBend(){
     const centerShift = clr * tanHalf;
     const m1 = val1 + shrink - centerShift;
     const m2 = m1 + hyp;
-
-    res += `- Расстояние между сгибами: ${formatInches(hyp)}\n`;
-    res += `- Усадка (Shrink): ${formatInches(shrink)}\n`;
-    res += `- Компенсация радиуса (Center shift): ${formatInches(centerShift)}\n\n`;
-    res += `- Метка M1: ${formatInches(m1)}\n  Совместите с стрелкой и согните.\n`;
-    res += `- Поверните трубу на 180°, метка M2: ${formatInches(m2)} — согните.\n`;
+    res += `Расстояние между сгибами: ${formatInches(hyp)}\n`;
+    res += `Усадка трубы (Shrink): ${formatInches(shrink)}\n`;
+    res += `Компенсация радиуса (Center shift): ${formatInches(centerShift)}\n\n`;
+    res += `Отмерьте ${formatInches(m1)} (M1) и совместите с Arrow.\n`;
+    res += `Согните первый изгиб.\n`;
+    res += `Поверните трубу на 180°, отмерьте ${formatInches(m2)} (M2) и согните второй.\n`;
   } else if(type==='saddle3'){
     const mult = 1/sin;
     const shrinkSingle = val2 * ((1 - cos)/sin);
@@ -573,13 +524,12 @@ function calculateSingleBend(){
     const m2 = val1 + totalShrink;
     const m1 = m2 - dist - centerShift;
     const m3 = m2 + dist + centerShift;
-
-    res += `- Общая усадка (Shrink): ${formatInches(totalShrink)}\n`;
-    res += `- Расстояние до концов: ${formatInches(dist)}\n`;
-    res += `- Компенсация радиуса: ${formatInches(centerShift)}\n\n`;
-    res += `- Метки: M1=${formatInches(m1)}, M2=${formatInches(m2)} (центр), M3=${formatInches(m3)}\n`;
-    res += `- Согните M2 на двойной угол (${(angleDeg*2).toFixed(1)}°).\n`;
-    res += `- Поверните трубу и согните M1 и M3 на угол ${angleDeg}°.\n`;
+    res += `Общая усадка (Shrink): ${formatInches(totalShrink)}\n`;
+    res += `Расстояние от центра до концов: ${formatInches(dist)}\n`;
+    res += `Компенсация радиуса: ${formatInches(centerShift)}\n\n`;
+    res += `Метки: M1=${formatInches(m1)}, M2=${formatInches(m2)} (центр), M3=${formatInches(m3)}.\n`;
+    res += `Гните M2 на двойной угол (${(angleDeg*2).toFixed(1)}°).\n`;
+    res += `Поверните и согните M1 и M3 на угол ${angleDeg}°.\n`;
   } else if(type==='saddle4'){
     const mult = 1/sin;
     const shrinkSingle = val2 * ((1 - cos)/sin);
@@ -592,13 +542,13 @@ function calculateSingleBend(){
     const m3 = adjCenter + halfWidth;
     const m1 = m2 - dist - centerShift;
     const m4 = m3 + dist + centerShift;
-
-    res += `- Общая усадка (Shrink): ${formatInches(totalShrink)}\n`;
-    res += `- Расстояние до концов: ${formatInches(dist)}\n`;
-    res += `- Компенсация радиуса: ${formatInches(centerShift)}\n\n`;
-    res += `- Метки: M1=${formatInches(m1)}, M2=${formatInches(m2)}, M3=${formatInches(m3)}, M4=${formatInches(m4)}\n`;
-    res += `- Сделайте гибы последовательно, контролируя равномерность.\n`;
+    res += `Общая усадка (Shrink): ${formatInches(totalShrink)}\n`;
+    res += `Расстояние от центра до концов: ${formatInches(dist)}\n`;
+    res += `Компенсация радиуса: ${formatInches(centerShift)}\n\n`;
+    res += `Метки: M1=${formatInches(m1)}, M2=${formatInches(m2)}, M3=${formatInches(m3)}, M4=${formatInches(m4)}.\n`;
+    res += `Последовательно сгибайте по меткам, контролируя равномерность изгибов.\n`;
   }
+
   const resDiv = document.getElementById('single-results');
   resDiv.style.display = 'block';
   resDiv.innerHTML = res.replace(/(M\d)/g, '<span class="marked-point">$1</span>');
@@ -626,6 +576,7 @@ function calculate3DAngle(){
                      `Общая длина (3D путь): <b>${formatInches(travel)}</b> (${travel.toFixed(2)}")`;
 }
 
+// --- Multi-Run (Цепочка изгибов) ---
 function addMultiBend(){
   const container = document.getElementById('multi-bends-container');
   const idx = container.children.length + 1;
@@ -647,10 +598,10 @@ function addMultiBend(){
     <label>Угол изгиба (°)</label>
     <input type="number" class="multi-bend-angle" min="1" max="89" value="30" />
 
-    <label>Центр препятствия от торца трубы (в дюймах)</label>
+    <label>Центр препятствия от торца трубы (дюймы)</label>
     <input type="number" class="multi-val1" min="0" value="10" />
 
-    <label>Высота препятствия (в дюймах)</label>
+    <label>Высота препятствия (дюймы)</label>
     <input type="number" class="multi-val2" min="0" value="2" />
 
     <label style="display:none;" class="multi-val3-label">Ширина (плоская часть)</label>
@@ -741,7 +692,7 @@ function calculateMultiRun(){
       }
       const mark = val1 - takeup + currentPosition;
       res += `  Метка M1: ${formatInches(mark)} (от начала трубы)\n`;
-      res += `  Согнуть строго 90°.\n\n`;
+      res += `  Сгибайте строго 90°.\n\n`;
       totalShrink += takeup;
       currentPosition = mark + takeup;
     } 
@@ -755,10 +706,10 @@ function calculateMultiRun(){
 
       res += `  Расстояние между сгибами: ${formatInches(hyp)}\n`;
       res += `  Усадка (shrink): ${formatInches(shrink)}\n`;
-      res += `  Центр смещения (center shift): ${formatInches(centerShift)}\n`;
+      res += `  Центр смещения: ${formatInches(centerShift)}\n`;
       res += `  Метка M1: ${formatInches(m1)}\n`;
       res += `  Метка M2: ${formatInches(m2)}\n`;
-      res += `  Гибы: согнуть в M1, повернуть трубу, согнуть в M2.\n\n`;
+      res += `  Сгибайте в точках M1 и M2 с поворотом трубы.\n\n`;
 
       totalShrink += shrink;
       currentPosition = m2;
@@ -775,14 +726,14 @@ function calculateMultiRun(){
 
       res += `  Общая усадка (shrink): ${formatInches(totalShrinkBend)}\n`;
       res += `  Расстояние до концов: ${formatInches(dist)}\n`;
-      res += `  Центр смещения (center shift): ${formatInches(centerShift)}\n`;
-      res += `  Метки: M1=${formatInches(m1)}, M2=${formatInches(m2)}, M3=${formatInches(m3)}\n`;
-      res += `  Гибы: согнуть M2 на двойной угол, затем повернуть и согнуть M1 и M3.\n\n`;
+      res += `  Центр смещения: ${formatInches(centerShift)}\n`;
+      res += `  Метки M1=${formatInches(m1)}, M2=${formatInches(m2)}, M3=${formatInches(m3)}\n`;
+      res += `  Сгибайте M2 на двойной угол, затем M1 и M3.\n\n`;
 
       totalShrink += totalShrinkBend;
       currentPosition = m3;
     }
-    else if (type === 'saddle4') {
+    else if(type === 'saddle4') {
       const mult = 1 / sin;
       const shrinkSingle = val2 * ((1 - cos) / sin);
       const totalShrinkBend = 2 * shrinkSingle;
@@ -797,9 +748,9 @@ function calculateMultiRun(){
 
       res += `  Общая усадка (shrink): ${formatInches(totalShrinkBend)}\n`;
       res += `  Расстояние до концов: ${formatInches(dist)}\n`;
-      res += `  Центр смещения (center shift): ${formatInches(centerShift)}\n`;
-      res += `  Метки: M1=${formatInches(m1)}, M2=${formatInches(m2)}, M3=${formatInches(m3)}, M4=${formatInches(m4)}\n`;
-      res += `  Гибы: сделайте изгибы последовательно, контролируя равномерность.\n\n`;
+      res += `  Центр смещения: ${formatInches(centerShift)}\n`;
+      res += `  Метки M1=${formatInches(m1)}, M2=${formatInches(m2)}, M3=${formatInches(m3)}, M4=${formatInches(m4)}\n`;
+      res += `  Последовательно сгибайте каждую метку.\n\n`;
 
       totalShrink += totalShrinkBend;
       currentPosition = m4;
@@ -808,16 +759,14 @@ function calculateMultiRun(){
       res += `  Неизвестный тип изгиба.\n\n`;
     }
   }
-
   res += `Общая усадка цепочки: ${formatInches(totalShrink)}\n`;
-
   const resDiv = document.getElementById('multi-results');
   resDiv.style.display = 'block';
   resDiv.textContent = res;
 }
 
+// --- Параллельные трассы ---
 let parallelPipesCount = 0;
-
 function addParallelPipe(){
   const container = document.getElementById('parallel-pipes-container');
   parallelPipesCount++;
@@ -828,18 +777,14 @@ function addParallelPipe(){
 
   pipeDiv.innerHTML = `
     <h3>Труба #${parallelPipesCount}</h3>
-    <label>Центр препятствия от начала трассы (в дюймах)</label>
+    <label>Центр препятствия от начала трассы (дюймы)</label>
     <input type="number" class="parallel-val1" min="0" value="10" />
-
-    <label>Высота подъема (в дюймах)</label>
+    <label>Высота подъема (дюймы)</label>
     <input type="number" class="parallel-rise" min="0" value="4" />
-
     <label style="display:none;" class="parallel-val3-label">Ширина (плоская часть)</label>
     <input type="number" class="parallel-val3" min="0" value="6" style="display:none;" />
-
     <button type="button" style="margin-top:8px;" onclick="removeParallelPipe(this)">Удалить трубу</button>
   `;
-
   container.appendChild(pipeDiv);
 }
 function removeParallelPipe(button){
@@ -912,22 +857,16 @@ function calculateParallelRun(){
     res += `  Центр смещения (Center shift): ${formatInches(centerShift)}\n`;
     res += `  Метка M1 (от начала): ${formatInches(m1)}\n`;
     res += `  Метка M2 (от начала): ${formatInches(m2)}\n`;
-    res += `  Гибы: первый изгиб - согнуть в точке M1, затем повернуть трубу и согнуть в M2.\n\n`;
+    res += `  Гибы: согнуть в M1, повернуть трубу, согнуть в M2.\n\n`;
   }
 
   const resDiv = document.getElementById('parallel-results');
   resDiv.style.display = 'block';
   resDiv.textContent = res;
 }
-есь JavaScript код с функциями, который уже был описан (populateFractionSelect, switchTab и т.д.)
-  // Включая исправления по Multi-Run для val2 и val3, а также параллельные трассы...
-
-  // (Для удобства я могу отправить вам весь скрипт в следующем сообщении или включить здесь, если хотите)
-
-  // Вставьте сюда полный скрипт из предыдущих частей
+// Multi-Run и Parallel — при необходимости могу отправить дополнительно, сейчас основной работающий код для одиночного гиба и 3D угла.
 
 </script>
 
 </body>
 </html>
-
