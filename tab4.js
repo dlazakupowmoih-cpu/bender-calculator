@@ -70,6 +70,9 @@ const tab4 = (function() {
                             <option value="1/2">1/2"</option>
                             <option value="3/4" selected>3/4"</option>
                             <option value="1">1"</option>
+                            <option value="1-1/4">1-1/4"</option>
+                            <option value="1-1/2">1-1/2"</option>
+                            <option value="2">2"</option>
                         </select>
                     </div>
                 </div>
@@ -84,28 +87,47 @@ const tab4 = (function() {
         const baseV1 = getSplitVal('p-v1-whole', 'p-v1-frac');
         const baseV2 = getSplitVal('p-v2-whole', 'p-v2-frac');
         const angle = fittingType === 'stub' ? 90 : parseFloat(document.getElementById('p-base-angle').value);
+        const rad = angle * Math.PI / 180;
+        const multiplier = 1 / Math.sin(rad);
 
         const pipes = [];
         document.querySelectorAll('#p-pipes-container > div').forEach((pipeDiv, idx) => {
-            pipes.push({ id: idx + 1, takeup: 6 });
+            const pipeNum = idx + 1;
+            const typeSel = document.getElementById(`p-type-${pipeNum}`);
+            const sizeSel = document.getElementById(`p-size-${pipeNum}`);
+            const conduitType = typeSel ? typeSel.value : 'emt';
+            const sizeVal = sizeSel ? sizeSel.value : '3/4';
+            const spec = specs[conduitType] && specs[conduitType][sizeVal] ? specs[conduitType][sizeVal] : {takeup: 6, clr: 4.375};
+
+            pipes.push({ 
+                id: pipeNum, 
+                takeup: spec.takeup, 
+                clr: spec.clr,
+                type: conduitType.toUpperCase(),
+                size: sizeVal
+            });
         });
 
         let resultsHTML = `<h3>📐 Спецификация пакета параллельных труб:</h3>`;
-        const rad = angle * Math.PI / 180;
         let cumShift = 0;
 
         pipes.forEach((p, idx) => {
             if (idx > 0) cumShift += uniformGap;
             let desc = "";
+
             if (fittingType === 'stub') {
                 let mark = baseV1 + cumShift - p.takeup;
-                desc = `Метка для 90°: <b>${formatInches(mark)}</b>`;
+                desc = `90° Stub-up | Метка от торца: <b>${formatInches(mark)}</b> (Take-up: ${p.takeup}")`;
             } else {
                 let shrink = baseV2 * ((1 - Math.cos(rad)) / Math.sin(rad));
-                let mark = baseV1 + cumShift + shrink;
-                desc = `Метка для гиба: <b>${formatInches(mark)}</b> (Усадка: ${shrink.toFixed(2)}")`;
+                let centerShift = p.clr * Math.tan(rad / 2);
+                let m1 = baseV1 + cumShift + shrink - centerShift;
+                let dist = baseV2 * multiplier;
+                let m2 = m1 + dist;
+                desc = `Offset ${angle}° | М1 = <b>${formatInches(m1)}</b>, М2 = <b>${formatInches(m2)}</b> (Shrink: ${formatInches(shrink)})`;
             }
-            resultsHTML += `<div style="margin-bottom:8px;"><b>Труба #${p.id}:</b> ${desc}</div>`;
+
+            resultsHTML += `<div style="margin-bottom:8px; padding:6px; background:#030712; border-radius:6px;"><b>Труба #${p.id} (${p.type} ${p.size}"):</b> ${desc}</div>`;
         });
 
         const resDiv = document.getElementById('p-results');
