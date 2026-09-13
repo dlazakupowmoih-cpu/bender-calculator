@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eto Bender Suka — Полевой калькулятор</title>
+    <title>Eto Bender Suka</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -22,8 +22,46 @@
         }
         h2 {
             text-align: center;
-            color: #ff9800;
+            color: #ffffff;
             margin-top: 0;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        /* Вкладки сверху */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 8px 4px;
+            background: #2d2d2d;
+            border: none;
+            border-radius: 6px;
+            color: #aaa;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background: #2196f3;
+            color: #fff;
+            font-weight: bold;
+        }
+        .section-title {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .form-group {
             margin-bottom: 14px;
@@ -31,7 +69,7 @@
         label {
             display: block;
             margin-bottom: 5px;
-            font-size: 14px;
+            font-size: 13px;
             color: #b0b0b0;
         }
         select, input {
@@ -42,13 +80,13 @@
             color: #fff;
             border-radius: 6px;
             box-sizing: border-box;
-            font-size: 16px;
+            font-size: 15px;
         }
-        button {
+        .calc-btn {
             width: 100%;
             padding: 12px;
-            background: #ff9800;
-            color: #121212;
+            background: #2196f3;
+            color: #fff;
             border: none;
             border-radius: 6px;
             font-size: 16px;
@@ -56,13 +94,13 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        button:hover {
-            background: #f57c00;
+        .calc-btn:hover {
+            background: #1976d2;
         }
         .result-card {
             margin-top: 20px;
             background: #252525;
-            border-left: 4px solid #ff9800;
+            border-left: 4px solid #2196f3;
             padding: 15px;
             border-radius: 4px;
         }
@@ -90,9 +128,19 @@
 
 <div class="container">
     <h2>Eto Bender Suka</h2>
+    <div class="subtitle">Профессиональный калькулятор трубогиба</div>
     
+    <!-- Шапка с вкладками, как на скриншоте -->
+    <div class="tabs">
+        <button class="tab-btn active" id="tab1" onclick="switchTab(1)">1. Одиночный гиб</button>
+        <button class="tab-btn" id="tab2" onclick="switchTab(2)">2. Угол по катетам</button>
+        <button class="tab-btn" id="tab3" onclick="switchTab(3)">3. Multi-Run</button>
+    </div>
+
+    <div class="section-title">Параметры трубы и геометрии</div>
+
     <div class="form-group">
-        <label for="conduitType">Тип трубы:</label>
+        <label for="conduitType">Тип трубы</label>
         <select id="conduitType">
             <option value="emt">EMT</option>
             <option value="imc">IMC</option>
@@ -101,7 +149,7 @@
     </div>
 
     <div class="form-group">
-        <label for="conduitSize">Размер:</label>
+        <label for="conduitSize">Размер трубы</label>
         <select id="conduitSize">
             <option value="1/2">1/2"</option>
             <option value="3/4" selected>3/4"</option>
@@ -113,53 +161,53 @@
     </div>
 
     <div class="form-group">
-        <label for="calcType">Тип гиба:</label>
+        <label for="calcType">Вид изгиба</label>
         <select id="calcType" onchange="toggleInputs()">
             <option value="offset">Offset (Смещение)</option>
             <option value="stub">Stub-up (Подъем)</option>
             <option value="kick">Kick (Кик)</option>
-            <option value="parallel">Parallel Runs (Параллельные трубы)</option>
-            <option value="saddle3">3-Point Saddle (3-точечный сэдл)</option>
-            <option value="saddle4">4-Point Saddle (4-точечный сэдл)</option>
+            <option value="saddle3">3-Point Saddle (Седло 3 точки)</option>
+            <option value="saddle4">4-Point Saddle (Седло 4 точки / Box)</option>
         </select>
     </div>
 
-    <div class="form-group" id="groupV1">
-        <label for="v1">Базовая отметка / Высота (в дюймах):</label>
-        <input type="number" id="v1" step="0.125" value="12">
-    </div>
-
-    <div class="form-group" id="groupV2">
-        <label for="v2" id="labelV2">Глубина смещения (в дюймах):</label>
-        <input type="number" id="v2" step="0.125" value="4">
-    </div>
-
-    <div class="form-group hidden" id="groupWidth">
-        <label for="obstacleWidth">Ширина препятствия (в дюймах):</label>
-        <input type="number" id="obstacleWidth" step="0.125" value="6">
-    </div>
-
-    <div class="form-group hidden" id="groupParallel">
-        <label for="pipeIndex">Номер трубы в ряду (0 — первая):</label>
-        <input type="number" id="pipeIndex" value="1" min="0" step="1">
-        
-        <label for="pipeSpacing" style="margin-top: 8px;">Шаг между осями (Spacing):</label>
-        <input type="number" id="pipeSpacing" value="2" step="0.125">
-    </div>
-
     <div class="form-group" id="groupAngle">
-        <label for="angle">Угол гиба:</label>
+        <label for="angle">Угол изгиба офсета / седла</label>
         <select id="angle">
             <option value="10">10°</option>
             <option value="15">15°</option>
             <option value="22.5">22.5°</option>
-            <option value="30" selected>30°</option>
+            <option value="30" selected>30° (ходовой)</option>
             <option value="45">45°</option>
             <option value="60">60°</option>
         </select>
     </div>
 
-    <button onclick="calculate()">Рассчитать</button>
+    <div class="form-group" id="groupV1">
+        <label for="v1" id="labelV1">Центр препятствия со стены</label>
+        <input type="number" id="v1" step="0.125" value="36">
+    </div>
+
+    <div class="form-group" id="groupV2">
+        <label for="v2" id="labelV2">Высота препятствия (Depth со стены)</label>
+        <input type="number" id="v2" step="0.125" value="4">
+    </div>
+
+    <div class="form-group hidden" id="groupWidth">
+        <label for="obstacleWidth">Ширина препятствия (в дюймах)</label>
+        <input type="number" id="obstacleWidth" step="0.125" value="6">
+    </div>
+
+    <!-- Дополнительные поля для вкладки Multi-Run (3) -->
+    <div class="form-group hidden" id="groupMulti">
+        <label for="pipeIndex">Номер трубы в ряду (0 — первая)</label>
+        <input type="number" id="pipeIndex" value="1" min="0" step="1">
+        
+        <label for="pipeSpacing" style="margin-top: 8px;">Шаг между осями труб (Spacing)</label>
+        <input type="number" id="pipeSpacing" value="2" step="0.125">
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">Рассчитать разметку</button>
 
     <div id="resultContainer" class="result-card hidden">
         <h3 style="margin-top:0; color:#fff;">📍 Где ставить метки:</h3>
@@ -173,32 +221,55 @@
 <script src="formulas.js"></script>
 
 <script>
+    let currentTab = 1;
+
+    function switchTab(tabNum) {
+        currentTab = tabNum;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab' + tabNum).classList.add('active');
+
+        const calcTypeSelect = document.getElementById('calcType');
+        const groupMulti = document.getElementById('groupMulti');
+
+        if (tabNum === 1) {
+            // Одиночный гиб
+            groupMulti.classList.add('hidden');
+            calcTypeSelect.value = 'offset';
+        } else if (tabNum === 2) {
+            // Угол по катетам (можно привязать к офсету / кику)
+            groupMulti.classList.add('hidden');
+            calcTypeSelect.value = 'offset';
+        } else if (tabNum === 3) {
+            // Multi-Run (параллельные трубы)
+            groupMulti.classList.remove('hidden');
+            calcTypeSelect.value = 'offset'; // Или спец режим параллельных
+        }
+        toggleInputs();
+    }
+
     function toggleInputs() {
         const type = document.getElementById('calcType').value;
         const groupV2 = document.getElementById('groupV2');
+        const labelV1 = document.getElementById('labelV1');
         const labelV2 = document.getElementById('labelV2');
         const groupAngle = document.getElementById('groupAngle');
         const groupWidth = document.getElementById('groupWidth');
-        const groupParallel = document.getElementById('groupParallel');
 
         groupWidth.classList.add('hidden');
-        groupParallel.classList.add('hidden');
         groupV2.classList.remove('hidden');
         groupAngle.classList.remove('hidden');
 
         if (type === 'stub') {
             groupV2.classList.add('hidden');
             groupAngle.classList.add('hidden');
+            labelV1.innerText = "Требуемая высота подъема (Stub-up)";
         } else if (type === 'offset' || type === 'kick') {
-            labelV2.innerText = "Глубина смещения (в дюймах):";
-        } else if (type === 'parallel') {
-            labelV2.innerText = "Глубина смещения (в дюймах):";
-            groupParallel.classList.remove('hidden');
-        } else if (type === 'saddle3') {
-            labelV2.innerText = "Высота препятствия (в дюймах):";
-        } else if (type === 'saddle4') {
-            labelV2.innerText = "Высота препятствия (в дюймах):";
-            groupWidth.classList.remove('hidden');
+            labelV1.innerText = "Базовая отметка / Центр препятствия";
+            labelV2.innerText = "Высота препятствия (Depth со стены)";
+        } else if (type === 'saddle3' || type === 'saddle4') {
+            labelV1.innerText = "Центр препятствия со стены";
+            labelV2.innerText = "Высота препятствия (Depth со стены)";
+            if (type === 'saddle4') groupWidth.classList.remove('hidden');
         }
     }
 
@@ -215,20 +286,22 @@
         const spec = conduitSpecs[type][size];
         let res;
 
-        if (calcType === 'stub') {
-            res = ConduitMath.calcStub(v1, spec.takeup);
-        } else if (calcType === 'offset') {
-            res = ConduitMath.calcOffset(v1, v2, angle, spec.takeup, spec.clr);
-        } else if (calcType === 'kick') {
-            res = ConduitMath.calcKick(v1, v2, angle, spec.takeup, spec.clr);
-        } else if (calcType === 'parallel') {
+        if (currentTab === 3) {
             const pIndex = parseInt(document.getElementById('pipeIndex').value) || 0;
             const spacing = parseFloat(document.getElementById('pipeSpacing').value) || 2;
             res = ConduitMath.calcParallelOffset(v1, v2, angle, spec.takeup, spec.clr, pIndex, spacing);
-        } else if (calcType === 'saddle3') {
-            res = ConduitMath.calcSaddle3(v1, v2, angle, spec.clr);
-        } else if (calcType === 'saddle4') {
-            res = ConduitMath.calcSaddle4(v1, v2, width, angle, spec.clr);
+        } else {
+            if (calcType === 'stub') {
+                res = ConduitMath.calcStub(v1, spec.takeup);
+            } else if (calcType === 'offset') {
+                res = ConduitMath.calcOffset(v1, v2, angle, spec.takeup, spec.clr);
+            } else if (calcType === 'kick') {
+                res = ConduitMath.calcKick(v1, v2, angle, spec.takeup, spec.clr);
+            } else if (calcType === 'saddle3') {
+                res = ConduitMath.calcSaddle3(v1, v2, angle, spec.clr);
+            } else if (calcType === 'saddle4') {
+                res = ConduitMath.calcSaddle4(v1, v2, width, angle, spec.clr);
+            }
         }
 
         if (!res) return;
