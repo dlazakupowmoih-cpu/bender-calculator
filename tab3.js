@@ -137,7 +137,7 @@ const tab3 = (function() {
             return;
         }
 
-        let resHtml = `<div>⚙️ Параметры трубы (${conduitType.toUpperCase()} ${sizeSel.value}" ): Take-up = <b>${takeup}"</b> | CLR = <b>${clr}"</b></div><hr style="border-color:#374151; margin:8px 0;">`;
+        let resHtml = `<div>⚙️ Параметры трубы (${conduitType.toUpperCase()} ${sizeSel.value}"): Take-up = <b>${takeup}"</b> | CLR = <b>${clr}"</b></div><hr style="border-color:#374151; margin:8px 0;">`;
         let stepsSummary = `<h4>Порядок выполнения:</h4><ol>`;
 
         bendItems.forEach((item, index) => {
@@ -145,31 +145,50 @@ const tab3 = (function() {
             const type = document.getElementById(`m-type-${id}`).value;
             const v1 = getSplitVal(`m-v1-whole-${id}`, `m-v1-frac-${id}`);
             const v2 = getSplitVal(`m-v2-whole-${id}`, `m-v2-frac-${id}`);
+            const v3 = getSplitVal(`m-v3-whole-${id}`, `m-v3-frac-${id}`);
             
+            const angleSelect = document.getElementById(`m-angle-${id}`);
+            const angleDeg = angleSelect ? parseFloat(angleSelect.value) : 30;
+            const rad = angleDeg * Math.PI / 180;
+            const multiplier = 1 / Math.sin(rad);
+            const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
+            const centerShift = clr * Math.tan(rad / 2);
+
             let description = `Гиб #${index + 1} (${type.toUpperCase()}): `;
 
             if (type === 'stub') {
                 const mark = v1 - takeup;
                 description += `Метка на <b>${formatInches(mark)}</b> (согнуть на 90°)`;
-                stepsSummary += `<li>Отмерьте ${formatInches(mark)} от торца и сделайте 90° stub-up.</li>`;
-            } else {
-                const angleSelect = document.getElementById(`m-angle-${id}`);
-                const angleDeg = angleSelect ? parseFloat(angleSelect.value) : 30;
-                const rad = angleDeg * Math.PI / 180;
-                const multiplier = 1 / Math.sin(rad);
-                const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
-                const centerShift = clr * Math.tan(rad / 2);
-
-                if (type === 'offset') {
-                    const m1 = v1 + shrink - centerShift;
-                    const dist = v2 * multiplier;
-                    const m2 = m1 + dist;
-                    description += `Оффсет: М1 = <b>${formatInches(m1)}</b>, М2 = <b>${formatInches(m2)}</b> (${angleDeg}°)`;
-                    stepsSummary += `<li>Сделайте оффсет под ${angleDeg}° по меткам ${formatInches(m1)} и ${formatInches(m2)}.</li>`;
-                } else {
-                    description += `Сложный элемент (${type}) позиция ${formatInches(v1)}`;
-                    stepsSummary += `<li>Выполните гиб типа ${type} в позиции ${formatInches(v1)}.</li>`;
-                }
+                stepsSummary += `<li>Гиб #${index + 1} (Stub 90°): отмерьте ${formatInches(mark)} от торца.</li>`;
+            } else if (type === 'offset') {
+                const m1 = v1 + shrink - centerShift;
+                const dist = v2 * multiplier;
+                const m2 = m1 + dist;
+                description += `Оффсет: М1 = <b>${formatInches(m1)}</b>, М2 = <b>${formatInches(m2)}</b> (${angleDeg}°)`;
+                stepsSummary += `<li>Гиб #${index + 1} (Offset ${angleDeg}°): М1 = ${formatInches(m1)}, М2 = ${formatInches(m2)}.</li>`;
+            } else if (type === 'kick') {
+                const mark = v1 + shrink;
+                description += `Кик: Метка = <b>${formatInches(mark)}</b> (${angleDeg}°)`;
+                stepsSummary += `<li>Гиб #${index + 1} (Kick): метка на ${formatInches(mark)}.</li>`;
+            } else if (type === 'saddle3') {
+                const dist = v2 * multiplier;
+                const saddleShrink = 2 * shrink;
+                const m2 = v1 + saddleShrink;
+                const m1 = m2 - dist - centerShift;
+                const m3 = m2 + dist + centerShift;
+                description += `3-Point Saddle: М1 = <b>${formatInches(m1)}</b>, М2 (центр) = <b>${formatInches(m2)}</b>, М3 = <b>${formatInches(m3)}</b>`;
+                stepsSummary += `<li>Гиб #${index + 1} (3-Point Saddle): М1=${formatInches(m1)}, М2=${formatInches(m2)}, М3=${formatInches(m3)}.</li>`;
+            } else if (type === 'saddle4') {
+                const totalShrink = 2 * shrink;
+                const adjCenter = v1 + totalShrink;
+                const dist = v2 * multiplier;
+                const halfWidth = v3 / 2;
+                const m2 = adjCenter - halfWidth;
+                const m3 = adjCenter + halfWidth;
+                const m1 = m2 - dist - centerShift;
+                const m4 = m3 + dist + centerShift;
+                description += `4-Point Saddle: М1 = <b>${formatInches(m1)}</b>, М2 = <b>${formatInches(m2)}</b>, М3 = <b>${formatInches(m3)}</b>, М4 = <b>${formatInches(m4)}</b>`;
+                stepsSummary += `<li>Гиб #${index + 1} (4-Point Saddle): М1=${formatInches(m1)}, М2=${formatInches(m2)}, М3=${formatInches(m3)}, М4=${formatInches(m4)}.</li>`;
             }
             resHtml += `<div style="margin-bottom:6px;">${description}</div>`;
         });
