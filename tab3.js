@@ -53,7 +53,7 @@ const tab3 = (function() {
             <div class="bend-item" id="m-item-${id}" style="background:#030712; border:1px solid #374151; border-radius:8px; padding:12px; margin-bottom:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:#60a5fa; margin-bottom:8px;">
                     <span>Гиб #${id}</span>
-                    <button onclick="document.getElementById('m-item-${id}').remove()" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Удалить</button>
+                    <button class="remove-btn" onclick="document.getElementById('m-item-${id}').remove()" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Удалить</button>
                 </div>
                 <div class="form-group">
                     <label>Вид изгиба</label>
@@ -103,20 +103,32 @@ const tab3 = (function() {
     }
 
     function toggleMultiItemInputs(id) {
-        const selType = document.getElementById(`m-type-${id}`);
-        const val2Group = document.getElementById(`m-group-v2-${id}`);
-        const val3Group = document.getElementById(`m-group-v3-${id}`);
+        const type = document.getElementById(`m-type-${id}`).value;
+        const lblV1 = document.getElementById(`m-lbl-v1-${id}`);
+        const lblV2 = document.getElementById(`m-lbl-v2-${id}`);
+        
+        document.getElementById(`m-group-v2-${id}`).style.display = 'block';
+        document.getElementById(`m-group-v3-${id}`).style.display = (type === 'saddle4') ? 'block' : 'none';
+
         const angleWrap = document.getElementById(`m-angle-wrap-${id}`);
 
-        if (!selType) return;
-        const val = selType.value;
-
-        val2Group.style.display = 'block';
-        val3Group.style.display = 'none';
-        angleWrap.style.display = (val === 'stub') ? 'none' : 'block';
-
-        if (val === 'stub') val2Group.style.display = 'none';
-        if (val === 'saddle4') val3Group.style.display = 'block';
+        if (type === 'stub') {
+            document.getElementById(`m-group-v2-${id}`).style.display = 'none';
+            angleWrap.style.display = 'none'; // Скрываем выбор угла для stub
+            lblV1 && (lblV1.innerText = "Высота стюба от конца трубы");
+        } else {
+            angleWrap.style.display = 'block'; // Показываем выбор угла для всех остальных типов
+            if (type === 'kick') {
+                lblV1 && (lblV1.innerText = "Расстояние от конца трубы до центра кика");
+                lblV2 && (lblV2.innerText = "Высота кика");
+            } else if (type === 'offset') {
+                lblV1 && (lblV1.innerText = "Центр препятствия / старт");
+                lblV2 && (lblV2.innerText = "Глубина оффсета");
+            } else if (type === 'saddle3' || type === 'saddle4') {
+                lblV1 && (lblV1.innerText = "Центр препятствия от стены");
+                lblV2 && (lblV2.innerText = "Высота препятствия");
+            }
+        }
     }
 
     function calculateMultiRun() {
@@ -147,17 +159,24 @@ const tab3 = (function() {
             const v1 = getSplitVal(`m-v1-whole-${id}`, `m-v1-frac-${id}`);
             const v2 = getSplitVal(`m-v2-whole-${id}`, `m-v2-frac-${id}`);
             const v3 = getSplitVal(`m-v3-whole-${id}`, `m-v3-frac-${id}`);
-            const angle = parseFloat(document.getElementById(`m-angle-${id}`).value) || 30;
-            const rad = angle * Math.PI / 180;
-            const multiplier = 1 / Math.sin(rad);
-            const shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
-            const centerCorr = clr * Math.tan(rad / 2);
+
+            let angle, rad, multiplier, shrink, centerCorr;
+            if (type === 'stub') {
+                angle = 90; // Жёстко 90 градусов для stub
+            } else {
+                angle = parseFloat(document.getElementById(`m-angle-${id}`).value) || 30;
+            }
+
+            rad = angle * Math.PI / 180;
+            multiplier = 1 / Math.sin(rad);
+            shrink = v2 * ((1 - Math.cos(rad)) / Math.sin(rad));
+            centerCorr = clr * Math.tan(rad / 2);
 
             let minM = 0, maxM = 0, details = {};
             if (type === 'stub') {
                 minM = v1 - takeup;
                 maxM = v1;
-                details = { title: "90° Стюб", desc: `Метка: ${formatInches(minM)}` };
+                details = { title: '90° Стюб', desc: `Метка: ${formatInches(minM)}` };
             } else if (type === 'kick') {
                 const m1 = v1 - shrink - centerCorr;
                 const m2 = m1 + v2 * multiplier;
@@ -187,11 +206,9 @@ const tab3 = (function() {
                 minM = m1; maxM = m4;
                 details = { title: `Saddle 4 точки`, desc: `М1=${formatInches(m1)}, М2=${formatInches(m2)}, М3=${formatInches(m3)}, М4=${formatInches(m4)}` };
             }
-
             bends.push({ id, minM, maxM, details });
         });
 
-        // Проверка пересечений
         bends.sort((a, b) => a.minM - b.minM);
         for (let i = 0; i < bends.length -1; i++) {
             if (bends[i+1].minM < bends[i].maxM + 1.0) {
@@ -207,14 +224,12 @@ const tab3 = (function() {
             document.getElementById('m-instructions').style.display = 'none';
             return;
         } else {
-            // Очистим красные рамки
             bends.forEach(b => {
                 const el = document.getElementById(`m-item-${b.id}`);
                 if(el) el.style.borderColor = "#374151";
             });
         }
 
-        // Вывод результата
         let resHtml = `<h3>Таблица меток:</h3>`;
         let instrHtml = `<h4>Инструкции:</h4><ol>`;
         bends.forEach((b, idx) => {
