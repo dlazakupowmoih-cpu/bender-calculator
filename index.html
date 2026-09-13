@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Профессиональный калькулятор изгибов труб</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header>
+  <h1>Eto Bender Suka</h1>
+  <p>Профессиональный калькулятор трубогиба с пошаговыми подсказками</p>
+</header>
+
+<div class="tabs-container">
+  <button class="tab-btn active" id="tab-btn-1" data-tab="tab-single">1. Одиночный гиб</button>
+  <button class="tab-btn" id="tab-btn-2" data-tab="tab-angle">2. Угол по трём измерениям</button>
+  <button class="tab-btn" id="tab-btn-3" data-tab="tab-multirun">3. Multi-Run (Цепочка)</button>
+  <button class="tab-btn" id="tab-btn-4" data-tab="tab-parallel">4. Параллельные трассы</button>
+</div>
+
+<!-- Вкладка 1: Одиночный гиб -->
+<div id="tab-single" class="tab-content active">
+  <div class="card">
+    <h2>Одиночный гиб</h2>
+    <label for="single-conduit-type">Тип трубы</label>
+    <select id="single-conduit-type">
+      <option value="emt">EMT</option>
+      <option value="imc">IMC</option>
+      <option value="rigid">Rigid</option>
+    </select>
+
+    <label for="single-conduit-size">Размер трубы</label>
+    <select id="single-conduit-size"></select>
+
+    <label for="single-bend-type">Вид изгиба</label>
+    <select id="single-bend-type">
+      <option value="stub">90° Stub-up (Прямой угол)</option>
+      <option value="offset">Offset (Классический оффсет)</option>
+      <option value="saddle3">3-Point Saddle (Седло 3 точки)</option>
+      <option value="saddle4">4-Point Saddle (Седло 4 точки)</option>
+    </select>
+
+    <label for="single-bend-angle">Угол изгиба</label>
+    <select id="single-bend-angle">
+      <option value="10">10° (Мягкий)</option>
+      <option value="22.5">22.5° (Стандарт)</option>
+      <option value="30" selected>30° (Ходовой)</option>
+      <option value="45">45° (Крутой)</option>
+      <option value="90">90° (Только для Stub-up)</option>
+      <option value="custom">Кастомный...</option>
+    </select>
+
+    <div id="single-custom-angle-wrapper" class="custom-angle-wrapper" style="display:none;">
+      <input type="range" id="single-custom-angle-slider" min="1" max="89" step="0.5" value="30" />
+      <input type="number" id="single-custom-angle-number" min="1" max="89" step="0.5" value="30" />
+    </div>
+
+    <label id="single-label-val1">Центр препятствия от стены</label>
+    <div class="inch-split">
+      <input type="number" id="single-val1-whole" min="0" value="30" />
+      <select id="single-val1-frac"></select>
+    </div>
+
+    <label id="single-label-val2">Высота препятствия</label>
+    <div class="inch-split">
+      <input type="number" id="single-val2-whole" min="0" value="2" />
+      <select id="single-val2-frac"></select>
+    </div>
+
+    <label id="single-label-val3" style="display:none;">Ширина (плоская часть)</label>
+    <div class="inch-split" style="display:none;" id="single-val3-container">
+      <input type="number" id="single-val3-whole" min="0" value="6" />
+      <select id="single-val3-frac"></select>
+    </div>
+
+    <button id="single-calc-btn">Рассчитать разметку</button>
+    <div id="single-results" class="results" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Вкладка 2 -->
+<div id="tab-angle" class="tab-content">
+  <div class="card">
+    <h2>Расчет угла по трём измерениям</h2>
+
+    <label>Высота подъема (Rise)</label>
+    <div class="inch-split">
+      <input type="number" id="angle-rise-whole" min="0" value="10" />
+      <select id="angle-rise-frac"></select>
+    </div>
+
+    <label>Ширина (Width)</label>
+    <div class="inch-split">
+      <input type="number" id="angle-width-whole" min="0" value="10" />
+      <select id="angle-width-frac"></select>
+    </div>
+
+    <label>Длина (Length)</label>
+    <div class="inch-split">
+      <input type="number" id="angle-length-whole" min="0" value="10" />
+      <select id="angle-length-frac"></select>
+    </div>
+
+    <button id="angle-calc-btn">Пересчитать угол</button>
+
+    <div id="angle-results" class="results" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Вкладка 3 -->
+<div id="tab-multirun" class="tab-content">
+  <div class="card">
+    <h2>Multi-Run (Цепочка изгибов)</h2>
+
+    <label>Тип трубы</label>
+    <select id="multi-conduit-type">
+      <option value="emt">EMT</option>
+      <option value="imc">IMC</option>
+      <option value="rigid">Rigid</option>
+    </select>
+
+    <label>Размер трубы</label>
+    <select id="multi-conduit-size"></select>
+
+    <div id="multi-bends-container" style="margin-top: 20px;"></div>
+
+    <button id="multi-add-bend-btn">+ Добавить изгиб</button>
+    <button id="multi-calc-btn" style="margin-top: 12px;">Рассчитать цепочку</button>
+
+    <div id="multi-error-container"></div>
+    <div id="multi-results" class="results" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Вкладка 4 -->
+<div id="tab-parallel" class="tab-content">
+  <div class="card">
+    <h2>Параллельные трассы</h2>
+
+    <label>Режим отступов между трубами</label>
+    <select id="parallel-spacing-mode">
+      <option value="uniform" selected>Одинаковый (автоматический шаг)</option>
+      <option value="custom">Кастомный (для каждой трубы)</option>
+    </select>
+
+    <div id="parallel-uniform-gap-group" style="margin-top: 10px;">
+      <label>Базовый отступ (дюймы)</label>
+      <div class="inch-split">
+        <input type="number" id="parallel-gap-whole" min="0" step="1" value="3" />
+        <select id="parallel-gap-frac"></select>
+      </div>
+    </div>
+
+    <div id="parallel-pipes-container" style="margin-top: 20px;"></div>
+    <button id="parallel-add-pipe-btn">+ Добавить трубу</button>
+
+    <label style="margin-top: 20px;">Тип изгиба / фитинга</label>
+    <select id="parallel-bend-type">
+      <option value="single">Single Bend / Kick</option>
+      <option value="offset" selected>Классический Offset</option>
+      <option value="saddle3">3-Point Saddle</option>
+      <option value="saddle4">4-Point Saddle</option>
+      <option value="stub">90° Stub-up</option>
+    </select>
+
+    <label>Базовая точка старта (дюймы)</label>
+    <div class="inch-split">
+      <input type="number" id="parallel-base-point-whole" min="0" step="1" value="24" />
+      <select id="parallel-base-point-frac"></select>
+    </div>
+
+    <label>Требуемый подъем (дюймы)</label>
+    <div class="inch-split">
+      <input type="number" id="parallel-rise-whole" min="0" step="1" value="4" />
+      <select id="parallel-rise-frac"></select>
+    </div>
+
+    <label>Угол изгиба</label>
+    <select id="parallel-angle">
+      <option value="10">10°</option>
+      <option value="22.5">22.5°</option>
+      <option value="30" selected>30°</option>
+      <option value="45">45°</option>
+    </select>
+
+    <button id="parallel-calc-btn" style="margin-top: 20px;">Рассчитать трассу</button>
+
+    <div id="parallel-results" class="results" style="display:none;"></div>
+  </div>
+</div>
+
+<script src="script.js" defer></script>
+<script src="script2.js" defer></script>
+
+</body>
+</html>
