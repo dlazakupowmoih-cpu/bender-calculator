@@ -27,6 +27,7 @@ function calculate3DAngle() {
     `2) Используйте рассчитанный точный угол для настройки углов изгиба.<br>` +
     `3) При разметке и монтаже опирайтесь на эти данные для точной установки труб.`;
 }
+
 document.getElementById('angle-calc-btn').addEventListener('click', calculate3DAngle);
 
 // --------- Вкладка 3: Multi-Run (Цепочка изгибов) ---------
@@ -67,8 +68,18 @@ function addMultiBend() {
   const newId = multiBendCount++;
   const row = createMultiBendRow(newId);
   multiBendsContainer.appendChild(row);
-  populateFractionSelect(row.querySelector(`.multi-bend-dist-frac`).getAttribute('class').split(' ').join(''));
+  populateMultiFractionSelect(row.querySelector(`select.multi-bend-dist-frac[data-id="${newId}"]`));
   attachMultiBendListeners(row, newId);
+}
+
+function populateMultiFractionSelect(sel){
+  sel.innerHTML='';
+  fractionOptions.forEach(fr=>{
+    let opt=document.createElement('option');
+    opt.value=fr.value;
+    opt.textContent=fr.label;
+    sel.appendChild(opt);
+  });
 }
 
 function attachMultiBendListeners(row, id) {
@@ -99,15 +110,14 @@ function attachMultiBendListeners(row, id) {
     numberInput.value = val;
   };
 
-  // Заполнение дробных селектов
-  for (let fr of fractionOptions) {
+  fracSelect.innerHTML = '';
+  fractionOptions.forEach(fr => {
     let opt = document.createElement('option');
     opt.value = fr.value;
     opt.textContent = fr.label;
     fracSelect.appendChild(opt);
-  }
+  });
 
-  // Удаление изгиба
   row.querySelector('.multi-remove-bend-btn').addEventListener('click', () => {
     row.remove();
   });
@@ -273,7 +283,6 @@ function calculateParallelRun() {
     gap = getSplitVal('parallel-gap-whole', 'parallel-gap-frac');
   }
 
-  // Формируем инструкции
   let instructions = `Параллельные трассы с ${pipes.length} трубами\n\n`;
   instructions += `Тип изгиба: ${bendType}\n`;
   instructions += `Отступ между трубами: ${formatInches(gap)} (если выбран одинаковый режим)\n`;
@@ -281,7 +290,6 @@ function calculateParallelRun() {
   instructions += `Высота подъема: ${formatInches(rise)}\n`;
   instructions += `Угол изгиба: ${angleDeg}°\n\n`;
 
-  // Расчет и шаги для каждой трубы
   let currentOffset = 0;
   for (let pipe of pipes) {
     const { takeup, clr } = pipe.specs;
@@ -326,8 +334,20 @@ function calculateParallelRun() {
   resultsDiv.style.display = 'block';
   resultsDiv.innerHTML = instructions.replace(/\n/g, '<br>');
 }
+
 document.getElementById('parallel-calc-btn').addEventListener('click', calculateParallelRun);
 
-// Инициализация первого изгиба и трубы в Multi-Run и Параллельных трассах
+// Инициализация первого изгиба и первой трубы
 addMultiBend();
 addParallelPipe();
+
+// ---------------- Таб переключение ----------------
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const tabId = e.currentTarget.getAttribute('data-tab');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  });
+});
