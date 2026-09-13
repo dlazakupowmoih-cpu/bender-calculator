@@ -3,263 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор трубогиба</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Eto Bender Suka — Полевой калькулятор</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 16px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h2 {
+            text-align: center;
+            color: #ff9800;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #b0b0b0;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #ff9800;
+            color: #121212;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #f57c00;
+        }
+        .result-card {
+            margin-top: 20px;
+            background: #252525;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .mark-item {
+            font-size: 18px;
+            margin: 8px 0;
+            color: #4caf50;
+        }
+        .steps-list {
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #d0d0d0;
+        }
+        .steps-list li {
+            margin-bottom: 6px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Переключение вкладок -->
-    <div class="tabs">
-        <div class="tab-btn active" onclick="switchTab('single')">Одиночный гиб</div>
-        <div class="tab-btn" onclick="switchTab('kick')">Kick</div>
-        <div class="tab-btn" onclick="switchTab('multi')">Multi-Run</div>
-        <div class="tab-btn" onclick="switchTab('parallel')">Parallel-Run</div>
+<div class="container">
+    <h2>Eto Bender Suka</h2>
+    
+    <div class="form-group">
+        <label for="conduitType">Тип трубы:</label>
+        <select id="conduitType">
+            <option value="emt">EMT</option>
+            <option value="imc">IMC</option>
+            <option value="rigid">Rigid</option>
+        </select>
     </div>
 
-    <!-- Вкладка 1: Одиночный гиб -->
-    <div id="tab-single" class="tab-content active">
-        <div class="card">
-            <div class="section-title">Параметры трубы и геометрии</div>
-            
-            <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 12px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Тип трубы</label>
-                    <select id="s-conduit-type">
-                        <option value="emt" selected>EMT</option>
-                        <option value="imc">IMC</option>
-                        <option value="rigid">Rigid</option>
-                    </select>
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Размер трубы</label>
-                    <select id="s-conduit-size"></select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Вид изгиба</label>
-                <select id="s-bend-type">
-                    <option value="stub">90° Stub-up (Прямой угол)</option>
-                    <option value="offset">Offset (Классический оффсет)</option>
-                    <option value="offset_box">Offset to Box (Заводка в коробку)</option>
-                    <option value="saddle3" selected>3-Point Saddle (Седло 3 точки)</option>
-                    <option value="saddle4">4-Point Saddle (Седло 4 точки)</option>
-                </select>
-            </div>
-
-            <div class="form-group" id="s-angle-group-container">
-                <label>Угол изгиба</label>
-                <select id="s-bend-angle">
-                    <option value="10">10° (плавный)</option>
-                    <option value="22.5">22.5° (стандарт)</option>
-                    <option value="30" selected>30° (ходовой)</option>
-                    <option value="45">45° (крутой)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Центр препятствия со стены (V1)</label>
-                <div class="inch-split">
-                    <input type="number" id="s-v1-whole" value="36" min="0" />
-                    <select id="s-v1-frac" class="frac-select"></select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Глубина / Высота препятствия (V2)</label>
-                <div class="inch-split">
-                    <input type="number" id="s-v2-whole" value="4" min="0" />
-                    <select id="s-v2-frac" class="frac-select"></select>
-                </div>
-            </div>
-
-            <div class="form-group" id="s-val3-group" style="display:none;">
-                <label>Ширина препятствия (V3)</label>
-                <div class="inch-split">
-                    <input type="number" id="s-v3-whole" value="6" min="0" />
-                    <select id="s-v3-frac" class="frac-select"></select>
-                </div>
-            </div>
-
-            <button class="btn" id="btn-calc-single">Рассчитать разметку</button>
-
-            <div id="s-results" class="results" style="display:none;"></div>
-            <div id="s-instructions" class="instructions" style="display:none;"></div>
-        </div>
+    <div class="form-group">
+        <label for="conduitSize">Размер:</label>
+        <select id="conduitSize">
+            <option value="1/2">1/2"</option>
+            <option value="3/4" selected>3/4"</option>
+            <option value="1">1"</option>
+            <option value="1-1/4">1-1/4"</option>
+            <option value="1-1/2">1-1/2"</option>
+            <option value="2">2"</option>
+        </select>
     </div>
 
-    <!-- Вкладка 2: Kick -->
-    <div id="tab-kick" class="tab-content">
-        <div class="card">
-            <div class="section-title">Параметры Kick (догиб / подъем)</div>
-            <div class="form-group">
-                <label>Расстояние до точки гиба</label>
-                <div class="inch-split">
-                    <input type="number" id="k-dist-whole" value="20" min="0" />
-                    <select id="k-dist-frac" class="frac-select"></select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Высота подъема (Height)</label>
-                <div class="inch-split">
-                    <input type="number" id="k-height-whole" value="3" min="0" />
-                    <select id="k-height-frac" class="frac-select"></select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Угол изгиба</label>
-                <select id="k-angle">
-                    <option value="10">10°</option>
-                    <option value="22.5">22.5°</option>
-                    <option value="30" selected>30°</option>
-                    <option value="45">45°</option>
-                </select>
-            </div>
-            <button class="btn" id="btn-calc-kick">Рассчитать Kick</button>
-            <div id="k-results" class="results" style="display:none;"></div>
-            <div id="k-instructions" class="instructions" style="display:none;"></div>
-        </div>
+    <div class="form-group">
+        <label for="calcType">Тип гиба:</label>
+        <select id="calcType" onchange="toggleInputs()">
+            <option value="offset">Offset (Смещение)</option>
+            <option value="stub">Stub-up (Подъем)</option>
+            <option value="saddle3">3-Point Saddle (Сэдл)</option>
+        </select>
     </div>
 
-    <!-- Вкладка 3: Multi-Run -->
-    <div id="tab-multi" class="tab-content">
-        <div class="card">
-            <div class="section-title">Параметры трубы для Multi-Run</div>
-            <div class="form-row" style="display: flex; gap: 12px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Тип трубы</label>
-                    <select id="m-conduit-type">
-                        <option value="emt" selected>EMT</option>
-                        <option value="imc">IMC</option>
-                        <option value="rigid">Rigid</option>
-                    </select>
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Размер трубы</label>
-                    <select id="m-conduit-size"></select>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="section-title">
-                Цепочка изгибов на трубе
-                <button type="button" class="btn" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="tab3.addMultiItem()">+ Добавить гиб</button>
-            </div>
-            <div id="m-bends-container"></div>
-        </div>
-
-        <div class="card">
-            <button type="button" class="btn" onclick="tab3.calculateMultiRun()">Рассчитать Multi-Run разметку</button>
-            <div id="m-error-container"></div>
-            <div id="m-results" class="results" style="display:none;"></div>
-            <div id="m-instructions" class="instructions" style="display:none;"></div>
-        </div>
+    <div class="form-group" id="groupV1">
+        <label for="v1">Базовая отметка / Высота (в дюймах):</label>
+        <input type="number" id="v1" step="0.125" value="12">
     </div>
 
-    <!-- Вкладка 4: Parallel-Run -->
-    <div id="tab-parallel" class="tab-content">
-        <div class="card">
-            <div class="section-title">Параметры параллельных трасс</div>
-            <div class="form-group">
-                <label>Тип фитинга</label>
-                <select id="p-fitting-type">
-                    <option value="stub">90° Stub-up</option>
-                    <option value="offset" selected>Offset</option>
-                </select>
-            </div>
-            <div class="form-group" id="p-group-angle">
-                <label>Угол изгиба</label>
-                <select id="p-base-angle">
-                    <option value="10">10°</option>
-                    <option value="22.5">22.5°</option>
-                    <option value="30" selected>30°</option>
-                    <option value="45">45°</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Способ расстановки труб</label>
-                <select id="p-spacing-mode">
-                    <option value="uniform">Равномерный шаг</option>
-                </select>
-            </div>
-            <div class="form-group" id="p-uniform-gap-group">
-                <label>Шаг между трубами</label>
-                <div class="inch-split">
-                    <input type="number" id="p-gap-whole" value="2" min="0" />
-                    <select id="p-gap-frac" class="frac-select"></select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Базовая метка V1 (первая труба)</label>
-                <div class="inch-split">
-                    <input type="number" id="p-v1-whole" value="24" min="0" />
-                    <select id="p-v1-frac" class="frac-select"></select>
-                </div>
-            </div>
-            <div class="form-group" id="p-group-v2">
-                <label>Высота оффсета V2</label>
-                <div class="inch-split">
-                    <input type="number" id="p-v2-whole" value="4" min="0" />
-                    <select id="p-v2-frac" class="frac-select"></select>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="section-title">
-                Список труб в пакете
-                <button type="button" class="btn" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="tab4.addParallelPipe()">+ Труба</button>
-            </div>
-            <div id="p-pipes-container"></div>
-        </div>
-
-        <div class="card">
-            <button type="button" class="btn" onclick="tab4.calculateParallelRun()">Рассчитать пакет труб</button>
-            <div id="p-results" class="results" style="display:none;"></div>
-        </div>
+    <div class="form-group" id="groupV2">
+        <label for="v2" id="labelV2">Глубина смещения (в дюймах):</label>
+        <input type="number" id="v2" step="0.125" value="4">
     </div>
 
-    <!-- Подключение JS-модулей -->
-    <script src="db.js"></script>
-    <script src="formulas.js"></script>
-    <script src="tab1.js"></script>
-    <script src="tab2.js"></script>
-    <script src="tab3.js"></script>
-    <script src="tab4.js"></script>
+    <div class="form-group" id="groupAngle">
+        <label for="angle">Угол гиба:</label>
+        <select id="angle">
+            <option value="10">10°</option>
+            <option value="15">15°</option>
+            <option value="22.5">22.5°</option>
+            <option value="30" selected>30°</option>
+            <option value="45">45°</option>
+            <option value="60">60°</option>
+        </select>
+    </div>
 
-    <script>
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    <button onclick="calculate()">Рассчитать</button>
 
-            const buttons = document.querySelectorAll('.tab-btn');
-            if (tabName === 'single') {
-                buttons[0].classList.add('active');
-                document.getElementById('tab-single').classList.add('active');
-            } else if (tabName === 'kick') {
-                buttons[1].classList.add('active');
-                document.getElementById('tab-kick').classList.add('active');
-            } else if (tabName === 'multi') {
-                buttons[2].classList.add('active');
-                document.getElementById('tab-multi').classList.add('active');
-            } else if (tabName === 'parallel') {
-                buttons[3].classList.add('active');
-                document.getElementById('tab-parallel').classList.add('active');
-            }
+    <div id="resultContainer" class="result-card hidden">
+        <h3 style="margin-top:0; color:#fff;">📍 Где ставить метки:</h3>
+        <div id="marksOutput"></div>
+        <h3 style="margin-bottom:5px; color:#fff;">🛠 Порядок работы:</h3>
+        <ol id="stepsOutput" class="steps-list"></ol>
+    </div>
+</div>
+
+<!-- Подключаем логику и базу данных -->
+<script src="db.js"></script>
+<script src="formulas.js"></script>
+
+<script>
+    function toggleInputs() {
+        const type = document.getElementById('calcType').value;
+        const groupV2 = document.getElementById('groupV2');
+        const labelV2 = document.getElementById('labelV2');
+        const groupAngle = document.getElementById('groupAngle');
+
+        if (type === 'stub') {
+            groupV2.classList.add('hidden');
+            groupAngle.classList.add('hidden');
+        } else if (type === 'offset') {
+            groupV2.classList.remove('hidden');
+            labelV2.innerText = "Глубина смещения (в дюймах):";
+            groupAngle.classList.remove('hidden');
+        } else if (type === 'saddle3') {
+            groupV2.classList.remove('hidden');
+            labelV2.innerText = "Высота препятствия (в дюймах):";
+            groupAngle.classList.remove('hidden');
+        }
+    }
+
+    function calculate() {
+        const type = document.getElementById('conduitType').value;
+        const size = document.getElementById('conduitSize').value;
+        const calcType = document.getElementById('calcType').value;
+        
+        const v1 = parseFloat(document.getElementById('v1').value) || 0;
+        const v2 = parseFloat(document.getElementById('v2').value) || 0;
+        const angle = parseFloat(document.getElementById('angle').value) || 30;
+
+        const spec = conduitSpecs[type][size];
+        let res;
+
+        if (calcType === 'stub') {
+            res = ConduitMath.calcStub(v1, spec.takeup);
+        } else if (calcType === 'offset') {
+            res = ConduitMath.calcOffset(v1, v2, angle, spec.takeup, spec.clr);
+        } else if (calcType === 'saddle3') {
+            res = ConduitMath.calcSaddle3(v1, v2, angle, spec.clr);
         }
 
-        document.getElementById('s-bend-type')?.addEventListener('change', function() {
-            const v3Group = document.getElementById('s-val3-group');
-            v3Group.style.display = (this.value === 'saddle4') ? 'block' : 'none';
-        });
+        if (!res) return;
 
-        document.addEventListener("DOMContentLoaded", function() {
-            if (typeof tab1 !== 'undefined') tab1.init();
-            if (typeof tab2 !== 'undefined') tab2.init();
-            if (typeof tab3 !== 'undefined') tab3.init();
-            if (typeof tab4 !== 'undefined') tab4.init();
+        // Вывод меток
+        let marksHTML = '';
+        res.marks.forEach(m => {
+            marksHTML += `<div class="mark-item"><b>${m.label}:</b> ${m.formatted} <span style="font-size:13px; color:#888;">(${m.value.toFixed(2)}")</span></div>`;
         });
-    </script>
+        document.getElementById('marksOutput').innerHTML = marksHTML;
+
+        // Вывод шагов
+        let stepsHTML = '';
+        res.steps.forEach(s => {
+            stepsHTML += `<li>${s}</li>`;
+        });
+        document.getElementById('stepsOutput').innerHTML = stepsHTML;
+
+        document.getElementById('resultContainer').classList.remove('hidden');
+    }
+</script>
+
 </body>
 </html>
