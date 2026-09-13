@@ -57,7 +57,6 @@
         .tab-content.active {
             display: block;
         }
-        /* Немного дополнительных стилей для контента */
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border);
@@ -159,20 +158,18 @@
             const container = document.getElementById(tabId);
             try {
                 const response = await fetch(tabsContent[tabId]);
-                if (response.ok) {
-                    container.innerHTML = await response.text();
-                    // Инициализируем вкладку после подгрузки
-                    if (window[tabId]) window[tabId].init && window[tabId].init();
-                } else {
-                    container.innerHTML = `<p>Не удалось загрузить содержимое вкладки ${tabId}</p>`;
+                if (!response.ok) throw new Error('Network error');
+                container.innerHTML = await response.text();
+                if (window[tabId] && typeof window[tabId].init === 'function') {
+                    window[tabId].init();
                 }
-            } catch(e) {
-                container.innerHTML = `<p>Ошибка загрузки вкладки ${tabId}</p>`;
+            } catch (e) {
+                container.innerHTML = `<p>Ошибка загрузки ${tabId}</p>`;
             }
         }
+
         Object.keys(tabsContent).forEach(id => loadTabContent(id));
 
-        // Переключение вкладок
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
