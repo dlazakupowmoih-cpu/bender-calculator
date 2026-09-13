@@ -1,0 +1,32 @@
+<div class="card">
+    <div class="section-title">Параметры трубы для Multi-Run</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Тип трубы</label>
+            <select id="m-conduit-type" onchange="tab3.updateSizeOptions()">
+                <option value="emt">EMT</option>
+                <option value="imc">IMC</option>
+                <option value="rigid">Rigid</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Размер трубы</label>
+            <select id="m-conduit-size"></select>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="section-title">
+        Цепочка изгибов на трубе (Multi-Run)
+        <button class="btn" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="tab3.addMultiItem()">+ Добавить гиб</button>
+    </div>
+    <div id="m-bends-container"></div>
+</div>
+
+<div class="card">
+    <button class="btn" onclick="tab3.calculateMultiRun()">Рассчитать Multi-Run разметку</button>
+    <div id="m-error-container"></div>
+    <div id="m-results" class="results" style="display:none;"></div>
+    <div id="m-instructions" class="instructions" style="display:none;"></div>
+</div>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Eto Bender Suka</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: #374151;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 16px;
+            max-width: 900px;
+            margin: 0 auto;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .tabs-container {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1 1 auto;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background-color: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Немного дополнительных стилей для контента */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+        select, input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: #030712;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+        button.btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+            margin-top: 12px;
+        }
+        button.btn:hover {
+            background-color: var(--accent-hover);
+        }
+        .results {
+            background-color: rgba(59, 130, 246, 0.08);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 14px;
+        }
+        .instructions {
+            background-color: rgba(245, 158, 11, 0.08);
+            border: 1px solid var(--warning);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+        .inch-split {
+            display: flex;
+            gap: 8px;
+        }
+        .inch-split input {
+            flex: 2;
+        }
+        .inch-split select {
+            flex: 3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Eto Bender Suka</h1>
+        <p>Профессиональный калькулятор трубогиба</p>
+    </header>
+    <div class="tabs-container">
+        <button class="tab-btn active" data-tab="tab1">1. Одиночный гиб</button>
+        <button class="tab-btn" data-tab="tab2">2. Угол по катетам</button>
+        <button class="tab-btn" data-tab="tab3">3. Multi-Run</button>
+        <button class="tab-btn" data-tab="tab4">4. Параллельные трассы</button>
+    </div>
+    <main>
+        <div id="tab1" class="tab-content active"></div>
+        <div id="tab2" class="tab-content"></div>
+        <div id="tab3" class="tab-content"></div>
+        <div id="tab4" class="tab-content"></div>
+    </main>
+
+    <script src="base.js"></script>
+    <script src="tab1.js"></script>
+    <script src="tab2.js"></script>
+    <script src="tab3.js"></script>
+    <script src="tab4.js"></script>
+
+    <script>
+        const tabsContent = {
+            tab1: 'tab1-single-bend.html',
+            tab2: 'tab2-angle.html',
+            tab3: 'tab3-multirun.html',
+            tab4: 'tab4-parallel.html'
+        };
+
+        async function loadTabContent(tabId) {
+            const container = document.getElementById(tabId);
+            try {
+                const response = await fetch(tabsContent[tabId]);
+                if (response.ok) {
+                    container.innerHTML = await response.text();
+                    // Инициализируем вкладку после подгрузки
+                    if (window[tabId]) window[tabId].init && window[tabId].init();
+                } else {
+                    container.innerHTML = `<p>Не удалось загрузить содержимое вкладки ${tabId}</p>`;
+                }
+            } catch(e) {
+                container.innerHTML = `<p>Ошибка загрузки вкладки ${tabId}</p>`;
+            }
+        }
+        Object.keys(tabsContent).forEach(id => loadTabContent(id));
+
+        // Переключение вкладок
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
