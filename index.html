@@ -117,7 +117,10 @@
         <select id="calcType" onchange="toggleInputs()">
             <option value="offset">Offset (Смещение)</option>
             <option value="stub">Stub-up (Подъем)</option>
-            <option value="saddle3">3-Point Saddle (Сэдл)</option>
+            <option value="kick">Kick (Кик)</option>
+            <option value="parallel">Parallel Runs (Параллельные трубы)</option>
+            <option value="saddle3">3-Point Saddle (3-точечный сэдл)</option>
+            <option value="saddle4">4-Point Saddle (4-точечный сэдл)</option>
         </select>
     </div>
 
@@ -129,6 +132,19 @@
     <div class="form-group" id="groupV2">
         <label for="v2" id="labelV2">Глубина смещения (в дюймах):</label>
         <input type="number" id="v2" step="0.125" value="4">
+    </div>
+
+    <div class="form-group hidden" id="groupWidth">
+        <label for="obstacleWidth">Ширина препятствия (в дюймах):</label>
+        <input type="number" id="obstacleWidth" step="0.125" value="6">
+    </div>
+
+    <div class="form-group hidden" id="groupParallel">
+        <label for="pipeIndex">Номер трубы в ряду (0 — первая):</label>
+        <input type="number" id="pipeIndex" value="1" min="0" step="1">
+        
+        <label for="pipeSpacing" style="margin-top: 8px;">Шаг между осями (Spacing):</label>
+        <input type="number" id="pipeSpacing" value="2" step="0.125">
     </div>
 
     <div class="form-group" id="groupAngle">
@@ -153,7 +169,6 @@
     </div>
 </div>
 
-<!-- Подключаем логику и базу данных -->
 <script src="db.js"></script>
 <script src="formulas.js"></script>
 
@@ -163,18 +178,27 @@
         const groupV2 = document.getElementById('groupV2');
         const labelV2 = document.getElementById('labelV2');
         const groupAngle = document.getElementById('groupAngle');
+        const groupWidth = document.getElementById('groupWidth');
+        const groupParallel = document.getElementById('groupParallel');
+
+        groupWidth.classList.add('hidden');
+        groupParallel.classList.add('hidden');
+        groupV2.classList.remove('hidden');
+        groupAngle.classList.remove('hidden');
 
         if (type === 'stub') {
             groupV2.classList.add('hidden');
             groupAngle.classList.add('hidden');
-        } else if (type === 'offset') {
-            groupV2.classList.remove('hidden');
+        } else if (type === 'offset' || type === 'kick') {
             labelV2.innerText = "Глубина смещения (в дюймах):";
-            groupAngle.classList.remove('hidden');
+        } else if (type === 'parallel') {
+            labelV2.innerText = "Глубина смещения (в дюймах):";
+            groupParallel.classList.remove('hidden');
         } else if (type === 'saddle3') {
-            groupV2.classList.remove('hidden');
             labelV2.innerText = "Высота препятствия (в дюймах):";
-            groupAngle.classList.remove('hidden');
+        } else if (type === 'saddle4') {
+            labelV2.innerText = "Высота препятствия (в дюймах):";
+            groupWidth.classList.remove('hidden');
         }
     }
 
@@ -185,6 +209,7 @@
         
         const v1 = parseFloat(document.getElementById('v1').value) || 0;
         const v2 = parseFloat(document.getElementById('v2').value) || 0;
+        const width = parseFloat(document.getElementById('obstacleWidth').value) || 0;
         const angle = parseFloat(document.getElementById('angle').value) || 30;
 
         const spec = conduitSpecs[type][size];
@@ -194,20 +219,26 @@
             res = ConduitMath.calcStub(v1, spec.takeup);
         } else if (calcType === 'offset') {
             res = ConduitMath.calcOffset(v1, v2, angle, spec.takeup, spec.clr);
+        } else if (calcType === 'kick') {
+            res = ConduitMath.calcKick(v1, v2, angle, spec.takeup, spec.clr);
+        } else if (calcType === 'parallel') {
+            const pIndex = parseInt(document.getElementById('pipeIndex').value) || 0;
+            const spacing = parseFloat(document.getElementById('pipeSpacing').value) || 2;
+            res = ConduitMath.calcParallelOffset(v1, v2, angle, spec.takeup, spec.clr, pIndex, spacing);
         } else if (calcType === 'saddle3') {
             res = ConduitMath.calcSaddle3(v1, v2, angle, spec.clr);
+        } else if (calcType === 'saddle4') {
+            res = ConduitMath.calcSaddle4(v1, v2, width, angle, spec.clr);
         }
 
         if (!res) return;
 
-        // Вывод меток
         let marksHTML = '';
         res.marks.forEach(m => {
             marksHTML += `<div class="mark-item"><b>${m.label}:</b> ${m.formatted} <span style="font-size:13px; color:#888;">(${m.value.toFixed(2)}")</span></div>`;
         });
         document.getElementById('marksOutput').innerHTML = marksHTML;
 
-        // Вывод шагов
         let stepsHTML = '';
         res.steps.forEach(s => {
             stepsHTML += `<li>${s}</li>`;
