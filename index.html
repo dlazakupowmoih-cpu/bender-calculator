@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conduit Bending Calculator / Калькулятор Гибки Труб</title>
+    <title>Conduit Bending Calculator  / Калькулятор Гибки Труб</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
@@ -152,14 +152,13 @@
             '1-1/4': { takeUp: 11, gain: 1.25, ctcDeduction: 5 }
         };
 
-        // Strict Tabular Shrink Constants per 1 inch of Rise for Offsets
         const offsetShrinkTable = {
-            10: 0.0625,  // 1/16"
-            15: 0.125,   // 1/8"
-            22.5: 0.1875,// 3/16"
-            30: 0.25,    // 1/4"
-            45: 0.375,   // 3/8"
-            60: 0.50     // 1/2"
+            10: 0.0625,
+            15: 0.125,
+            22.5: 0.1875,
+            30: 0.25,
+            45: 0.375,
+            60: 0.50
         };
 
         const offsetMultiplierTable = {
@@ -171,7 +170,6 @@
             60: 0.5774
         };
 
-        // Multipliers for Saddles (Distance from center bend to outer bends per inch of depth/rise)
         const saddleMultiplierTable = {
             10: 5.7588,
             15: 3.8637,
@@ -363,7 +361,6 @@
             let html = '';
             const L = i18n[currentLang].labels;
             
-            // Common angle select options with all standard angles
             const angleOptionsHTML = `
                 <option value="10">10° (Shrink: 1/16" per 1")</option>
                 <option value="15">15° (Shrink: 1/8" per 1")</option>
@@ -642,41 +639,47 @@
                 const z = getInputValue('sp-z');
                 const offsetAngle = parseFloat(document.getElementById('sp-angle').value);
 
+                // Correct spatial calculations:
                 const dOffset = Math.sqrt(y * y + z * z);
                 const hyp3d = Math.sqrt(x * x + y * y + z * z);
                 const rollAngle = Math.atan2(z, y) * (180 / Math.PI);
+                
+                const shrinkFactor = offsetShrinkTable[offsetAngle] || 0.25;
+                const mult = offsetMultiplierTable[offsetAngle] || 1.732;
+                const distBetweenBends = dOffset * mult;
+                const totalShrink = dOffset * shrinkFactor;
 
                 resCardsHTML = `
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">3D Гипотенуза ($d$)</span>
-                        <span class="text-xl font-extrabold text-amber-400 mono">${formatInches(hyp3d)}</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Истинный оффсет ($d_{\\text{offset}}$)</span>
+                        <span class="text-xl font-extrabold text-amber-400 mono">${formatInches(dOffset)}</span>
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Диагональ оффсета</span>
-                        <span class="text-xl font-extrabold text-slate-200 mono">${formatInches(dOffset)}</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Расстояние гибов</span>
+                        <span class="text-xl font-extrabold text-slate-200 mono">${formatInches(distBetweenBends)}</span>
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Угол роллинга ($\theta$)</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Угол роллинга ($\\theta$)</span>
                         <span class="text-xl font-bold text-slate-200 mono">${rollAngle.toFixed(1)}°</span>
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Угол оффсета</span>
-                        <span class="text-xl font-bold text-slate-200 mono">${offsetAngle}°</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">3D Гипотенуза</span>
+                        <span class="text-xl font-bold text-slate-200 mono">${formatInches(hyp3d)}</span>
                     </div>
                 `;
 
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p>Используйте габариты: Run = <b>${formatInches(x)}</b>, Rise = <b>${formatInches(y)}</b>, Depth = <b>${formatInches(z)}</b>.</p>
+                        <p>Вычислите истинный подъем оффсета по осям Y и Z: <b>${formatInches(dOffset)}</b>.</p>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p>Выполните оффсет под выбранным углом <b>${offsetAngle}°</b> с истинным подъемом <b>${formatInches(dOffset)}</b>.</p>
+                        <p>Согните оффсет под выбранным углом <b>${offsetAngle}°</b> с расстоянием между гибами <b>${formatInches(distBetweenBends)}</b>.</p>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p>Поверните трубу на угол роллинга <b>${rollAngle.toFixed(1)}°</b> между гибами оффсета.</p>
+                        <p>Поверните трубу на угол роллинга <b>${rollAngle.toFixed(1)}°</b> между плоскостями гиба.</p>
                     </div>
                 `;
 
@@ -693,7 +696,7 @@
                             <line x1="0" y1="0" x2="20" y2="-60" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
                             <circle cx="0" cy="0" r="5" fill="#38bdf8"/>
                             <circle cx="20" cy="-60" r="5" fill="#f59e0b"/>
-                            <text x="30" y="-30" fill="#f59e0b" font-weight="bold" font-size="11" class="mono">3D Hyp: ${formatInches(hyp3d)}</text>
+                            <text x="30" y="-30" fill="#f59e0b" font-weight="bold" font-size="11" class="mono">3D Offset: ${formatInches(dOffset)}</text>
                         </g>
                     </svg>
                 `;
