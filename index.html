@@ -145,7 +145,6 @@
         let currentTab = 'stub';
         let conduitSize = '1/2';
 
-        // Gain/Take-up Constants for Bender Heads (Radius & Take-up in inches)
         const benderSpecs = {
             '1/2': { takeUp: 5, gain: 0.25, ctcDeduction: 2 },
             '3/4': { takeUp: 6, gain: 0.50, ctcDeduction: 3 },
@@ -153,8 +152,7 @@
             '1-1/4': { takeUp: 11, gain: 1.25, ctcDeduction: 5 }
         };
 
-        // Strict Tabular Shrink Constants per 1 inch of Rise
-        // Offset / Kick Shrink Constants
+        // Strict Tabular Shrink Constants per 1 inch of Rise for Offsets
         const offsetShrinkTable = {
             10: 0.0625,  // 1/16"
             15: 0.125,   // 1/8"
@@ -164,17 +162,6 @@
             60: 0.50     // 1/2"
         };
 
-        // Multipliers for Cosecant / Csc
-        const cscTable = {
-            10: 5.7588,
-            15: 3.8637,
-            22.5: 2.6131,
-            30: 2.0000,
-            45: 1.4142,
-            60: 1.1547
-        };
-
-        // Tangent multipliers for offset advance distance (Distance between bends = Rise * Tan(angle/2) or similar geometry, standard multiplier Rise * multiplier)
         const offsetMultiplierTable = {
             10: 5.6713,
             15: 3.7321,
@@ -184,7 +171,25 @@
             60: 0.5774
         };
 
-        // Translations Dictionary
+        // Multipliers for Saddles (Distance from center bend to outer bends per inch of depth/rise)
+        const saddleMultiplierTable = {
+            10: 5.7588,
+            15: 3.8637,
+            22.5: 2.6131,
+            30: 2.0000,
+            45: 1.4142,
+            60: 1.1547
+        };
+
+        const saddleShrinkTable = {
+            10: 0.125,
+            15: 0.25,
+            22.5: 0.375,
+            30: 0.50,
+            45: 0.75,
+            60: 1.00
+        };
+
         const i18n = {
             ru: {
                 title: "Калькулятор Гибки Труб Pro",
@@ -210,7 +215,7 @@
                     modeB: "B: От центра препятствия (From Obstacle Center)",
                     obstacleDist: "Расстояние до центра препятствия",
                     saddleDepth: "Глубина препятствия (Depth / Rise)",
-                    obstWidth: "Ширина препятствия (Obstacle Width)",
+                    obstWidth: "Ширина / Центр препятствия",
                     axisX: "Ось X (Пробег / Run)",
                     axisY: "Ось Y (Подъем / Rise)",
                     axisZ: "Ось Z (Смещение / Depth)",
@@ -242,7 +247,7 @@
                     modeB: "From Obstacle Center",
                     obstacleDist: "Distance to Obstacle Center",
                     saddleDepth: "Obstacle Depth / Rise",
-                    obstWidth: "Obstacle Width",
+                    obstWidth: "Obstacle Width / Center",
                     axisX: "X Axis (Run)",
                     axisY: "Y Axis (Rise)",
                     axisZ: "Z Axis (Depth)",
@@ -252,7 +257,6 @@
             }
         };
 
-        // --- Helper: Convert decimal inches to clean Imperial string (e.g. 14 3/8") ---
         function formatInches(decimalInches) {
             if (isNaN(decimalInches) || decimalInches < 0) return '0"';
             let whole = Math.floor(decimalInches);
@@ -263,8 +267,6 @@
                 sixteenths = 0;
             }
             if (sixteenths === 0) return `${whole}"`;
-            
-            // Reduce fraction
             let num = sixteenths;
             let den = 16;
             while (num % 2 === 0 && den % 2 === 0) {
@@ -274,14 +276,12 @@
             return whole === 0 ? `${num}/${den}"` : `${whole} ${num}/${den}"`;
         }
 
-        // --- Helper: Render Imperial Split Input (Whole + 1/16 dropdown) ---
         function renderImperialInput(idPrefix, labelText, defaultWhole = 12, defaultFrac = 0) {
             let optionsHTML = '';
-            const fracTexts = ['0', '1/16', '1/8 (2/16)', '3/16', '1/4 (4/16)', '5/16', '3/8 (6/16)', '7/16', '1/2 (8/16)', '9/16', '5/8 (10/16)', '11/16', '3/4 (12/16)', '13/16', '7/8 (14/16)', '15/16'];
+            const fracTexts = ['0', '1/16', '1/8', '3/16', '1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '11/16', '3/4', '13/16', '7/8', '15/16'];
             for (let i = 0; i < 16; i++) {
                 let val = i / 16;
-                let text = fracTexts[i].split(' ')[0];
-                optionsHTML += `<option value="${val}" ${i === defaultFrac ? 'selected' : ''}>${text}</option>`;
+                optionsHTML += `<option value="${val}" ${i === defaultFrac ? 'selected' : ''}>${fracTexts[i]}</option>`;
             }
 
             return `
@@ -289,12 +289,12 @@
                     <label class="block text-xs font-semibold text-slate-300">${labelText}</label>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <span class="text-[10px] text-slate-400 block mb-0.5">${currentLang === 'ru' ? 'Целые (inches)' : 'Whole Inches'}</span>
+                            <span class="text-[10px] text-slate-400 block mb-0.5">${currentLang === 'ru' ? 'Целые' : 'Whole'}</span>
                             <input type="number" id="${idPrefix}-whole" value="${defaultWhole}" min="0" max="300" oninput="calculate()" 
                                 class="w-full bg-slate-950 border border-slate-750 rounded-xl px-3 py-2.5 text-slate-100 mono text-sm focus:outline-none focus:border-amber-500 transition-all">
                         </div>
                         <div>
-                            <span class="text-[10px] text-slate-400 block mb-0.5">${currentLang === 'ru' ? 'Дробь (1/16)' : 'Fraction'}</span>
+                            <span class="text-[10px] text-slate-400 block mb-0.5">${currentLang === 'ru' ? 'Дробь' : 'Fraction'}</span>
                             <select id="${idPrefix}-frac" onchange="calculate()" 
                                 class="w-full bg-slate-950 border border-slate-750 rounded-xl px-2.5 py-2.5 text-slate-100 mono text-sm focus:outline-none focus:border-amber-500 transition-all">
                                 ${optionsHTML}
@@ -312,13 +312,11 @@
             return parseFloat(wholeEl.value || 0) + parseFloat(fracEl.value || 0);
         }
 
-        // --- Initialization & Navigation ---
         function setLang(lang) {
             currentLang = lang;
             document.getElementById('lang-btn-ru').className = lang === 'ru' ? 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-amber-500 text-slate-950 shadow' : 'px-3 py-1 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200';
             document.getElementById('lang-btn-en').className = lang === 'en' ? 'px-3 py-1 text-xs font-bold rounded-lg transition-all bg-amber-500 text-slate-950 shadow' : 'px-3 py-1 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200';
             
-            // Update static texts
             document.getElementById('app-title').innerText = i18n[lang].title;
             document.getElementById('app-subtitle').innerText = i18n[lang].subtitle;
             document.getElementById('btn-copy-text').innerText = i18n[lang].copyPlan;
@@ -327,7 +325,6 @@
             document.getElementById('instructions-title').innerHTML = `<svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${i18n[lang].instructionsTitle}`;
             document.getElementById('diagram-heading').innerHTML = `<svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>${i18n[lang].diagramHeading}`;
 
-            // Update tabs
             for (let t of ['stub', 'offset', 'saddle3', 'saddle4', 'spatial3d']) {
                 document.getElementById(`tab-btn-${t}`).innerText = i18n[lang].tabs[t];
             }
@@ -361,11 +358,20 @@
             calculate();
         }
 
-        // --- Render Inputs based on active tab ---
         function renderInputsForTab(tab) {
             const container = document.getElementById('calculator-inputs');
             let html = '';
             const L = i18n[currentLang].labels;
+            
+            // Common angle select options with all standard angles
+            const angleOptionsHTML = `
+                <option value="10">10° (Shrink: 1/16" per 1")</option>
+                <option value="15">15° (Shrink: 1/8" per 1")</option>
+                <option value="22.5">22.5° (Shrink: 3/16" per 1")</option>
+                <option value="30" selected>30° (Shrink: 1/4" per 1")</option>
+                <option value="45">45° (Shrink: 3/8" per 1")</option>
+                <option value="60">60° (Shrink: 1/2" per 1")</option>
+            `;
 
             if (tab === 'stub') {
                 html += `
@@ -383,12 +389,7 @@
                         <div class="space-y-1.5">
                             <label class="block text-xs font-semibold text-slate-300">${L.angle}</label>
                             <select id="off-angle" onchange="calculate()" class="w-full bg-slate-950 border border-slate-750 rounded-xl px-3 py-2.5 text-slate-100 mono text-sm focus:outline-none focus:border-amber-500 transition-all">
-                                <option value="10">10° (Shrink: 1/16" per 1")</option>
-                                <option value="15">15° (Shrink: 1/8" per 1")</option>
-                                <option value="22.5">22.5° (Shrink: 3/16" per 1")</option>
-                                <option value="30" selected>30° (Shrink: 1/4" per 1")</option>
-                                <option value="45">45° (Shrink: 3/8" per 1")</option>
-                                <option value="60">60° (Shrink: 1/2" per 1")</option>
+                                ${angleOptionsHTML}
                             </select>
                         </div>
 
@@ -413,11 +414,14 @@
                         ${renderImperialInput('sad-depth', L.saddleDepth, 4, 0)}
                         ${renderImperialInput('sad-width', L.obstWidth, 8, 0)}
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-slate-300">${L.angle} (Center Bend)</label>
+                            <label class="block text-xs font-semibold text-slate-300">${L.angle} (Outer Bends)</label>
                             <select id="sad-angle" onchange="calculate()" class="w-full bg-slate-950 border border-slate-750 rounded-xl px-3 py-2.5 text-slate-100 mono text-sm focus:outline-none focus:border-amber-500 transition-all">
-                                <option value="22.5">22.5° / 45°</option>
-                                <option value="30" selected>30° / 60°</option>
-                                <option value="45">45° / 90°</option>
+                                <option value="10">10° outer / 20° center</option>
+                                <option value="15">15° outer / 30° center</option>
+                                <option value="22.5">22.5° outer / 45° center</option>
+                                <option value="30" selected>30° outer / 60° center</option>
+                                <option value="45">45° outer / 90° center</option>
+                                <option value="60">60° outer / 120° center</option>
                             </select>
                         </div>
                     </div>
@@ -429,6 +433,12 @@
                         ${renderImperialInput('sp-x', L.axisX, 12, 0)}
                         ${renderImperialInput('sp-y', L.axisY, 12, 0)}
                         ${renderImperialInput('sp-z', L.axisZ, 12, 0)}
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-slate-300">${L.angle} (Offset Angle)</label>
+                            <select id="sp-angle" onchange="calculate()" class="w-full bg-slate-950 border border-slate-750 rounded-xl px-3 py-2.5 text-slate-100 mono text-sm focus:outline-none focus:border-amber-500 transition-all">
+                                ${angleOptionsHTML}
+                            </select>
+                        </div>
                     </div>
                 `;
             }
@@ -456,7 +466,6 @@
             calculate();
         }
 
-        // --- Core Calculation Engine ---
         function calculate() {
             const spec = benderSpecs[conduitSize] || benderSpecs['1/2'];
             const resultsGrid = document.getElementById('results-grid');
@@ -471,11 +480,10 @@
                 const stubH = getInputValue('stub-h');
                 const takeUp = spec.takeUp;
                 const mark1 = stubH - takeUp;
-                const totalDed = stubH;
 
                 resCardsHTML = `
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Отметка гиба (Mark)</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Отметка гиба</span>
                         <span class="text-xl font-extrabold text-amber-400 mono">${formatInches(mark1)}</span>
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
@@ -495,15 +503,11 @@
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p>Отмерьте от конца трубы <b>${formatInches(mark1)}</b> и поставьте четкую отметку карандашом (стрелка бендера).</p>
+                        <p>Отмерьте от конца трубы <b>${formatInches(mark1)}</b> и поставьте отметку карандашом (стрелка бендера).</p>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p>Вставьте трубу в бендер так, чтобы хвостовик смотрел назад, а отметка совпала со <b>стрелкой (Arrow)</b> бендера. Убедитесь, что труба в желобе ровно.</p>
-                    </div>
-                    <div class="flex items-start gap-2.5">
-                        <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p>Надавите ногой на упор бендера (Foot Pedal), выполните гиб строго до вертикального уровня <b>90°</b> по угольнику.</p>
+                        <p>Вставьте трубу в бендер по <b>стрелке (Arrow)</b> и согните строго до <b>90°</b>.</p>
                     </div>
                 `;
 
@@ -512,8 +516,6 @@
                         <path d="M 50 140 L 250 140 A 40 40 0 0 0 290 100 L 290 40" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
                         <circle cx="210" cy="140" r="4" fill="#38bdf8"/>
                         <text x="200" y="165" fill="#38bdf8" font-size="11" class="mono">Mark: ${formatInches(mark1)}</text>
-                        <path d="M 290 30 L 270 30" stroke="#94a3b8" stroke-dasharray="2,2"/>
-                        <text x="300" y="70" fill="#94a3b8" font-size="11" class="mono">Stub: ${formatInches(stubH)}</text>
                     </svg>
                 `;
 
@@ -521,7 +523,6 @@
                 const rise = getInputValue('off-rise');
                 const angle = parseFloat(document.getElementById('off-angle').value);
                 const shrinkFactor = offsetShrinkTable[angle] || 0.25;
-                const csc = cscTable[angle] || 2.0;
                 const mult = offsetMultiplierTable[angle] || 1.732;
 
                 const distanceBetweenBends = rise * mult;
@@ -529,17 +530,10 @@
 
                 let mark1, mark2;
                 if (offsetMode === 'A') {
-                    // From end: start at 6" (standard starting allowance) + totalShrink? No, standard starting mark + shrink adjustment.
-                    // Actually, standard offset starting mark is arbitrary (e.g. 6"), and mark 2 is mark1 + distanceBetweenBends.
                     mark1 = 6.0;
                     mark2 = mark1 + distanceBetweenBends;
                 } else {
                     const obstCenter = getInputValue('off-obst');
-                    // Mode B: Obstacle center is at obstCenter.
-                    // Center of offset aligns with obstacle center. Mark 1 is Obstacle Center - (Distance Between Bends / 2) + Shrink adjustment?
-                    // Precise trade rule for Obstacle Center offset:
-                    // Center of offset is placed at obstacle center.
-                    // Mark 1 = Obstacle Center - (Distance / 2) + (Total Shrink / 2) -> Let's use clean standard calculation:
                     let halfDist = distanceBetweenBends / 2;
                     mark1 = obstCenter - halfDist + totalShrink;
                     mark2 = mark1 + distanceBetweenBends;
@@ -559,7 +553,7 @@
                         <span class="text-xl font-bold text-slate-200 mono">${formatInches(distanceBetweenBends)}</span>
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Шринк (Shrink)</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Шринк (${angle}°)</span>
                         <span class="text-xl font-bold text-slate-200 mono">${formatInches(totalShrink)}</span>
                     </div>
                 `;
@@ -567,15 +561,11 @@
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p>Поставьте первую отметку на расстоянии <b>${formatInches(mark1)}</b> от конца трубы. Поставьте вторую отметку на расстоянии <b>${formatInches(mark2)}</b>.</p>
+                        <p>Поставьте метки на отметках <b>${formatInches(mark1)}</b> и <b>${formatInches(mark2)}</b>.</p>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p><b>Первый гиб:</b> Согните по отметке 1 на угол <b>${angle}°</b>, используя <b>стрелку (Arrow)</b> бендера. Голова бендера направлена к концу трубы (Face Up).</p>
-                    </div>
-                    <div class="flex items-start gap-2.5">
-                        <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p><b>Второй гиб:</b> Переверните трубу на 180° (Flip / Roll). Согните по отметке 2 на угол <b>${angle}°</b> по <b>стрелке (Arrow)</b>, чтобы выровнять плоскость оффсета.</p>
+                        <p>Согните оба гиба на угол <b>${angle}°</b> по <b>стрелке (Arrow)</b>, перевернув трубу на 180° для второго гиба.</p>
                     </div>
                 `;
 
@@ -586,62 +576,63 @@
                         <circle cx="180" cy="80" r="4" fill="#38bdf8"/>
                         <text x="100" y="165" fill="#38bdf8" font-size="10" class="mono">M1: ${formatInches(mark1)}</text>
                         <text x="170" y="65" fill="#38bdf8" font-size="10" class="mono">M2: ${formatInches(mark2)}</text>
-                        <text x="240" y="110" fill="#94a3b8" font-size="11" class="mono">Rise: ${formatInches(rise)}</text>
                     </svg>
                 `;
 
             } else if (currentTab === 'saddle3' || currentTab === 'saddle4') {
                 const depth = getInputValue('sad-depth');
                 const width = getInputValue('sad-width');
-                const angle = parseFloat(document.getElementById('sad-angle').value);
+                const outerAngle = parseFloat(document.getElementById('sad-angle').value);
+                const centerAngle = outerAngle * 2;
                 
-                // 3-Point Saddle calculations
-                // Center bend angle is double outer bends (e.g. 30° center, 15° outer)
-                const centerMultiplier = 2.0; // multiplier for center bend distance
+                const mult = saddleMultiplierTable[outerAngle] || 2.0;
+                const shrinkFactor = saddleShrinkTable[outerAngle] || 0.5;
+
+                const spread = depth * mult;
+                const shrink = depth * shrinkFactor;
                 const centerMark = width;
-                const shrinkFactor = angle === 30 ? 0.25 : (angle === 22.5 ? 0.1875 : 0.375);
-                const shrink = depth * shrinkFactor * 2;
-                const spread = depth * (angle === 30 ? 2 : (angle === 22.5 ? 2.6 : 1.4));
+                const markLeft = centerMark - spread;
+                const markRight = centerMark + spread;
 
                 resCardsHTML = `
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Центральная отметка</span>
-                        <span class="text-xl font-extrabold text-amber-400 mono">${formatInches(width)}</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Центр (Center Mark)</span>
+                        <span class="text-xl font-extrabold text-amber-400 mono">${formatInches(centerMark)}</span>
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Боковые отметки (±)</span>
-                        <span class="text-xl font-extrabold text-amber-400 mono">${formatInches(spread)}</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Боковые метки</span>
+                        <span class="text-xl font-extrabold text-slate-200 mono">± ${formatInches(spread)}</span>
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
-                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Суммарный шринк</span>
+                        <span class="text-[10px] text-slate-400 block uppercase mb-1">Шринк (${outerAngle}°)</span>
                         <span class="text-xl font-bold text-slate-200 mono">${formatInches(shrink)}</span>
                     </div>
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
                         <span class="text-[10px] text-slate-400 block uppercase mb-1">Центральный угол</span>
-                        <span class="text-xl font-bold text-slate-200 mono">${angle * 2}°</span>
+                        <span class="text-xl font-bold text-slate-200 mono">${centerAngle}°</span>
                     </div>
                 `;
 
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p>Отметьте центр препятствия на трубе. Это <b>Центральная метка (Center Mark)</b>.</p>
+                        <p>Отметьте центр препятствия на отметке <b>${formatInches(centerMark)}</b>.</p>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p>Отложите от центра влево и вправо расстояние <b>${formatInches(spread)}</b> для боковых гибов.</p>
+                        <p>Отложите боковые отметки влево и вправо на расстояние <b>${formatInches(spread)}</b> от центра.</p>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p>Согните центральный гиб на угол <b>${angle * 2}°</b> по <b>риске (Rim Notch)</b> бендера. Затем согните боковые гибы на угол <b>${angle}°</b> по <b>стрелке (Arrow)</b>, развернув трубу на 180°.</p>
+                        <p>Согните центральный гиб на угол <b>${centerAngle}°</b> по <b>риске (Rim Notch)</b>, а боковые гибы на <b>${outerAngle}°</b> по <b>стрелке (Arrow)</b>.</p>
                     </div>
                 `;
 
                 svgHTML = `
                     <svg viewBox="0 0 400 180" class="w-full h-48">
-                        <path d="M 30 140 L 140 140 L 200 80 L 260 140 L 370 140" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
-                        <circle cx="200" cy="80" r="4" fill="#38bdf8"/>
-                        <text x="180" y="65" fill="#38bdf8" font-size="10" class="mono">Center: ${formatInches(width)}</text>
+                        <path d="M 30 140 L 130 140 L 200 70 L 270 140 L 370 140" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+                        <circle cx="200" cy="70" r="4" fill="#38bdf8"/>
+                        <text x="175" y="55" fill="#38bdf8" font-size="10" class="mono">Center: ${formatInches(centerMark)}</text>
                     </svg>
                 `;
 
@@ -649,12 +640,11 @@
                 const x = getInputValue('sp-x');
                 const y = getInputValue('sp-y');
                 const z = getInputValue('sp-z');
+                const offsetAngle = parseFloat(document.getElementById('sp-angle').value);
 
-                // True 3D spatial calculations
                 const dOffset = Math.sqrt(y * y + z * z);
                 const hyp3d = Math.sqrt(x * x + y * y + z * z);
                 const rollAngle = Math.atan2(z, y) * (180 / Math.PI);
-                const offsetAngle = 30; // standard offset angle for spatial runs
 
                 resCardsHTML = `
                     <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-center">
@@ -678,47 +668,31 @@
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
-                        <p>Используйте пространственный прямоугольный параллелепипед с габаритами: Run (X) = <b>${formatInches(x)}</b>, Rise (Y) = <b>${formatInches(y)}</b>, Depth (Z) = <b>${formatInches(z)}</b>.</p>
+                        <p>Используйте габариты: Run = <b>${formatInches(x)}</b>, Rise = <b>${formatInches(y)}</b>, Depth = <b>${formatInches(z)}</b>.</p>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
-                        <p>Рассчитайте истинную диагональ оффсета $d_{\text{offset}} = \sqrt{Y^2 + Z^2} = ${formatInches(dOffset)}$ и сделайте разметку под оффсет <b>${offsetAngle}°</b>.</p>
+                        <p>Выполните оффсет под выбранным углом <b>${offsetAngle}°</b> с истинным подъемом <b>${formatInches(dOffset)}</b>.</p>
                     </div>
                     <div class="flex items-start gap-2.5">
                         <span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
-                        <p>Выполните поворот трубы (Roll Angle) на угол <b>${rollAngle.toFixed(1)}°</b> вокруг продольной оси между первым и вторым гибами оффсета.</p>
+                        <p>Поверните трубу на угол роллинга <b>${rollAngle.toFixed(1)}°</b> между гибами оффсета.</p>
                     </div>
                 `;
 
-                // Mathematically rigorous Isometric 3D Rectangular Prism SVG
-                // Corner points in 3D: A(0,0,0), B(X,0,0), C(X,Y,0), D(0,Y,0), E(0,0,Z), F(X,0,Z), G(X,Y,Z), H(0,Y,Z)
-                // Isometric projection mapping: isoX = x - z * 0.707, isoY = y + z * 0.707
                 svgHTML = `
                     <svg viewBox="0 0 400 240" class="w-full h-56">
-                        <!-- Background Grid / Axis lines -->
                         <g transform="translate(100, 140)">
-                            <!-- Axis X, Y, Z origin at (0,0) -->
                             <line x1="0" y1="0" x2="120" y2="60" stroke="#334155" stroke-dasharray="3,3" stroke-width="1.5" />
                             <line x1="0" y1="0" x2="0" y2="-100" stroke="#334155" stroke-dasharray="3,3" stroke-width="1.5" />
                             <line x1="0" y1="0" x2="-100" y2="40" stroke="#334155" stroke-dasharray="3,3" stroke-width="1.5" />
-                            
-                            <!-- Prism Back Edges -->
                             <path d="M 120 60 L 120 -40 L 0 -100" fill="none" stroke="#1e293b" stroke-width="1.5"/>
                             <path d="M 120 -40 L 20 -60 L -100 40" fill="none" stroke="#1e293b" stroke-width="1.5"/>
-
-                            <!-- Prism Front Box Faces -->
                             <polygon points="0,0 120,60 120,-40 0,-100" fill="rgba(245, 158, 11, 0.03)" stroke="#334155" stroke-width="1.5"/>
                             <polygon points="0,0 0,-100 -100,-40 -100,60" fill="rgba(56, 189, 248, 0.03)" stroke="#334155" stroke-width="1.5"/>
-
-                            <!-- Spatial Main Diagonal from Origin (0,0,0) to Corner (X,Y,Z) at (20, -60) -->
                             <line x1="0" y1="0" x2="20" y2="-60" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
                             <circle cx="0" cy="0" r="5" fill="#38bdf8"/>
                             <circle cx="20" cy="-60" r="5" fill="#f59e0b"/>
-
-                            <!-- Labels -->
-                            <text x="60" y="40" fill="#94a3b8" font-size="10" class="mono">X: ${formatInches(x)}</text>
-                            <text x="-60" y="-20" fill="#94a3b8" font-size="10" class="mono">Y: ${formatInches(y)}</text>
-                            <text x="-40" y="30" fill="#94a3b8" font-size="10" class="mono">Z: ${formatInches(z)}</text>
                             <text x="30" y="-30" fill="#f59e0b" font-weight="bold" font-size="11" class="mono">3D Hyp: ${formatInches(hyp3d)}</text>
                         </g>
                     </svg>
@@ -730,7 +704,6 @@
             svgContainer.innerHTML = svgHTML;
         }
 
-        // --- Copy Plan to Clipboard ---
         function copyPlanToClipboard() {
             const textToCopy = `Conduit Bending Plan (${conduitSize}" EMT):\n` +
                 Array.from(document.querySelectorAll('#results-grid > div')).map(el => {
@@ -744,7 +717,6 @@
             });
         }
 
-        // Initial setup on load
         window.onload = function() {
             setLang('ru');
         };
