@@ -43,7 +43,7 @@
         </div>
     </header>
 
-    <!-- Navigation Tabs (4 tabs: Stub, Offset, Kick, 3-Point, 4-Point) -->
+    <!-- Navigation Tabs -->
     <nav class="bg-slate-900/60 border-b border-slate-800 backdrop-blur-md sticky top-[61px] z-40 overflow-x-auto">
         <div class="max-w-7xl mx-auto px-4 flex gap-2 py-2 no-scrollbar">
             <button onclick="switchTab('stub')" id="tab-btn-stub" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap bg-amber-500 text-slate-950 shadow-md">90° Стуб</button>
@@ -451,7 +451,7 @@
                 `;
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span><p>Отмерьте от торца трубы требуемую высоту стуба минус Take-up бендера (<b>${formatInches(spec.takeUp)}</b>). Поставьте метку на расстоянии <b>${formatInches(mark1)}</b>.</p></div>
-                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p>Заложите трубу в бендер так, чтобы метка точно совпала со <b>стрелкой (Arrow)</b> на башмаке инструмента. Убедитесь в соосности трубы.</p></div>
+                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p>Заложите трубу в бендер хвостовиком к упору так, чтобы метка точно совпала со <b>стрелкой (Arrow)</b> на башмаке инструмента. Убедитесь в соосности.</p></div>
                     <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span><p>Надавите ногой на упор бендера и согните трубу строго до вертикальных <b>90°</b> (проверяйте угольником).</p></div>
                 `;
                 svgHTML = `<svg viewBox="0 0 400 180" class="w-full h-48"><path d="M 50 140 L 250 140 A 40 40 0 0 0 290 100 L 290 40" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/><circle cx="210" cy="140" r="4" fill="#38bdf8"/><text x="200" y="165" fill="#38bdf8" font-size="11" class="mono">Mark: ${formatInches(mark1)}</text></svg>`;
@@ -497,7 +497,7 @@
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span><p>Нанесите две отметки на трубе: <b>Метка 1 на ${formatInches(mark1)}</b> и <b>Метка 2 на ${formatInches(mark2)}</b> (дистанция между гибами равна <b>${formatInches(distBetweenBends)}</b>).</p></div>
                     <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p><b>Первый гиб:</b> вставьте трубу в бендер хвостовиком вперёд, совместите Метку 1 со <b>стрелкой (Arrow)</b> и согните на выбранный угол <b>${angle}°</b>.</p></div>
-                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span><p><b>Второй гиб:</b> разверните трубу на <b>180°</b> (вдоль продольной оси), совместите Метку 2 с той же <b>стрелкой</b> и догните до <b>${angle}°</b>, следя за плоскостью гибки.</p></div>
+                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span><p><b>Второй гиб:</b> разверните трубу на <b>180°</b> (вдоль продольной оси), совместите Метку 2 с <b>ноткой (Rim Notch)</b> бендера и догните до <b>${angle}°</b>, следя за плоскостью.</p></div>
                 `;
                 svgHTML = `<svg viewBox="0 0 400 180" class="w-full h-48"><path d="M 30 140 L 120 140 L 180 80 L 370 80" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/><circle cx="120" cy="140" r="4" fill="#38bdf8"/><circle cx="180" cy="80" r="4" fill="#38bdf8"/><text x="100" y="165" fill="#38bdf8" font-size="10" class="mono">M1: ${formatInches(mark1)}</text><text x="170" y="65" fill="#38bdf8" font-size="10" class="mono">M2: ${formatInches(mark2)}</text></svg>`;
 
@@ -505,12 +505,11 @@
                 const kickRise = getInputValue('kick-rise');
                 const angle = parseFloat(document.getElementById('kick-angle').value);
                 const shrinkFactor = offsetShrinkTable[angle] || 0.25;
-                const mult = offsetMultiplierTable[angle] || 1.732;
-                
                 const shrink = kickRise * shrinkFactor;
+                
                 let bendMark;
                 if (kickMode === 'A') {
-                    bendMark = 24.0 + shrink; // Условная базовая отметка от конца для режима А
+                    bendMark = 24.0 + shrink;
                 } else {
                     const obstCenter = getInputValue('kick-obst');
                     bendMark = obstCenter + shrink;
@@ -535,9 +534,9 @@
                     </div>
                 `;
                 instructionsHTML = `
-                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span><p>С учетом требуемой высоты подьема кика расчетный шринк составляет <b>${formatInches(shrink)}</b>.</p></div>
-                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p>Поставьте отметку на расстоянии <b>${formatInches(bendMark)}</b> (с добавлением шринка к целевой точке упора).</p></div>
-                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span><p>Совместите метку со <b>стрелкой бендера</b> и выполните короткий гиб на угол <b>${angle}°</b>.</p></div>
+                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span><p>Рассчитанный шринк для кика составляет <b>${formatInches(shrink)}</b>.</p></div>
+                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p>Поставьте отметку на расстоянии <b>${formatInches(bendMark)}</b> (с учетом добавления шринка к целевой точке).</p></div>
+                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span><p>В зависимости от направления разворота, совместите метку со <b>стрелкой (Arrow)</b> или <b>ноткой (Rim Notch)</b> бендера и выполните гиб на угол <b>${angle}°</b>.</p></div>
                 `;
                 svgHTML = `<svg viewBox="0 0 400 180" class="w-full h-48"><path d="M 50 140 L 250 140 L 320 90" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/><circle cx="250" cy="140" r="4" fill="#38bdf8"/><text x="230" y="165" fill="#38bdf8" font-size="10" class="mono">Kick Mark: ${formatInches(bendMark)}</text></svg>`;
 
@@ -573,8 +572,8 @@
                 `;
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span><p>Нанесите три отметки: центральную (с учетом шринка <b>${formatInches(shrink)}</b> на <b>${formatInches(markCenter)}</b>) и две боковые на <b>${formatInches(markLeft)}</b> и <b>${formatInches(markRight)}</b>.</p></div>
-                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p><b>Центральный гиб:</b> совместите центральную отметку со <b>стрелкой бендера</b> и согните на <b>${centerAngle}°</b>.</p></div>
-                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span><p><b>Боковые гибы:</b> совместите боковые отметки со <b>стрелкой</b> (развернув трубу в обратную сторону) и согните каждое плечо на <b>${outerAngle}°</b>.</p></div>
+                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p><b>Центральный гиб:</b> совместите центральную отметку со <b>звездочкой (Star Point)</b> бендера и согните на <b>${centerAngle}°</b>.</p></div>
+                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span><p><b>Боковые гибы:</b> совместите каждую из боковых отметок со <b>стрелкой (Arrow)</b> бендера (развернув трубу в нужную сторону) и согните на <b>${outerAngle}°</b>.</p></div>
                 `;
                 svgHTML = `<svg viewBox="0 0 400 180" class="w-full h-48"><path d="M 30 140 L 130 140 L 200 70 L 270 140 L 370 140" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/><circle cx="200" cy="70" r="4" fill="#38bdf8"/><text x="175" y="55" fill="#38bdf8" font-size="10" class="mono">Center: ${formatInches(markCenter)}</text></svg>`;
 
@@ -613,7 +612,7 @@
                 `;
                 instructionsHTML = `
                     <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span><p>Отмерьте и поставьте 4 отметки симметрично центра препятствия на позициях: <b>${formatInches(mark1)}</b>, <b>${formatInches(mark2)}</b>, <b>${formatInches(mark3)}</b> и <b>${formatInches(mark4)}</b>.</p></div>
-                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p>Последовательно выполните четыре оффсетных гиба на угол <b>${angle}°</b>, направляя гибы в нужную сторону для обхода плоской ширины препятствия.</p></div>
+                    <div class="flex items-start gap-2.5"><span class="bg-amber-500 text-slate-950 font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span><p>Последовательно выполните четыре оффсетных гиба на угол <b>${angle}°</b>, используя <b>стрелку (Arrow)</b> для первых гибов плеч и <b>нотку (Rim Notch)</b> при зеркальном развороте трубы для обратных гибов.</p></div>
                 `;
                 svgHTML = `<svg viewBox="0 0 400 180" class="w-full h-48"><path d="M 20 140 L 90 140 L 140 80 L 260 80 L 310 140 L 380 140" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/><text x="160" y="70" fill="#38bdf8" font-size="10" class="mono">Width + Shrink: ${formatInches(obstWidth)}</text></svg>`;
             }
